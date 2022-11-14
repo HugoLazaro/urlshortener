@@ -25,6 +25,24 @@ interface ValidatorService {
 }
 
 /**
+ * [SafeBrowsingService] is the port to the service that validates if an url is secure in order for it to be shortened.
+ *
+ * **Note**: It is a design decision to create this port. It could be part of the core .
+ */
+interface SafeBrowsingService {
+    fun isSafe(url: String): Boolean
+}
+
+/**
+ * [IsReachableService] is the port to the service that validates if an url is reachable in order for it to be shortened.
+ *
+ * **Note**: It is a design decision to create this port. It could be part of the core .
+ */
+interface IsReachableService {
+    fun isReachable(url: String): Boolean
+}
+
+/**
  * [HashService] is the port to the service that creates a hash from a URL.
  *
  * **Note**: It is a design decision to create this port. It could be part of the core .
