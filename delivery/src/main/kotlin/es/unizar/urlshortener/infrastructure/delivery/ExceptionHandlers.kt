@@ -24,6 +24,18 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(value = [RedirectionNotFound::class])
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected fun redirectionNotFound(ex: RedirectionNotFound) = ErrorMessage(HttpStatus.NOT_FOUND.value(), ex.message)
+
+    @ResponseBody
+    @ExceptionHandler(value = [UrlNotSafeException::class])
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    protected fun UrlNotSafe(ex: UrlNotSafeException) = ErrorMessage
+    (HttpStatus.FORBIDDEN.value(), ex.message)
+
+    @ResponseBody
+    @ExceptionHandler(value = [UrlNotReachableException::class])
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected fun UrlNotReachable(ex: UrlNotReachableException) = ErrorMessage
+    (HttpStatus.BAD_REQUEST.value(), ex.message)
 }
 
 data class ErrorMessage(
