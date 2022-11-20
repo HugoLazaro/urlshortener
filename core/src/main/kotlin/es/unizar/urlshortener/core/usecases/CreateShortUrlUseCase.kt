@@ -20,10 +20,11 @@ class CreateShortUrlUseCaseImpl(
     private val validatorService: ValidatorService,
     private val safeBrowsingService: SafeBrowsingService,
     private val isReachableService: IsReachableService,
+    private val qrService: QRService,
     private val hashService: HashService
 ) : CreateShortUrlUseCase {
     override fun create(url: String, data: ShortUrlProperties): ShortUrl =
-        if (validatorService.isValid(url) && safeBrowsingService.isSafe(url) && isReachableService.isReachable(url)) {
+        if (validatorService.isValid(url) && safeBrowsingService.isSafe(url) && isReachableService.isReachable(url) && qrService.getQR(url)) {
             val id: String = hashService.hasUrl(url)
             val su = ShortUrl(
                 hash = id,
