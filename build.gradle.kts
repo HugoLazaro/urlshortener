@@ -37,6 +37,7 @@ subprojects {
     }
     dependencies {
         "implementation"("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+        "implementation"("io.github.g0dkar:qrcode-kotlin-jvm:3.2.0")
     }
 }
 
