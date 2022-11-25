@@ -4,6 +4,7 @@ import es.unizar.urlshortener.core.InvalidUrlException
 import es.unizar.urlshortener.core.RedirectionNotFound
 import es.unizar.urlshortener.core.UrlNotSafeException
 import es.unizar.urlshortener.core.UrlNotReachableException
+import es.unizar.urlshortener.core.HashUsedException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -36,6 +37,11 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(value = [UrlNotReachableException::class])
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected fun UrlNotReachable(ex: UrlNotReachableException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
+
+    @ResponseBody
+    @ExceptionHandler(value = [HashUsedException::class])
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected fun HashUsed(ex: HashUsedException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
 }
 
 data class ErrorMessage(

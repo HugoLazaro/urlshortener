@@ -9,7 +9,7 @@ import es.unizar.urlshortener.core.*
  * **Note**: This is an example of functionality.
  */
 interface CreateShortUrlUseCase {
-    fun create(url: String, data: ShortUrlProperties): ShortUrl
+    fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl
 }
 
 /**
@@ -23,7 +23,7 @@ class CreateShortUrlUseCaseImpl(
         private val qrService: QRService,
         private val hashService: HashService
 ) : CreateShortUrlUseCase {
-    override fun create(url: String, data: ShortUrlProperties): ShortUrl =
+    override fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl =
             if (!validatorService.isValid(url)) {
                 throw InvalidUrlException(url)
             } else if (!safeBrowsingService.isSafe(url)) {
@@ -33,16 +33,24 @@ class CreateShortUrlUseCaseImpl(
             } else if (!qrService.getQR(url)) {
                 throw UrlNotReachableException(url) // Lanzar excepcion correspondiente
             } else{
-                val id: String = hashService.hasUrl(url)
-                val su = ShortUrl(
-                        hash = id,
-                        redirection = Redirection(target = url),
-                        properties = ShortUrlProperties(
-                                safe = data.safe,
-                                ip = data.ip,
-                                sponsor = data.sponsor
+                val id: String = if (customUrl == "") 
+                    hashService.hasUrl(url) 
+                    else customUrl
+                    val used : Boolean = shortUrlRepository.isHashUsed(id)
+                    print(used)
+                    if (used) {
+                        throw HashUsedException(id)
+                    } else {
+                        val su = ShortUrl(
+                            hash = id,
+                            redirection = Redirection(target = url),
+                            properties = ShortUrlProperties(
+                                    safe = data.safe,
+                                    ip = data.ip,
+                                    sponsor = data.sponsor
+                            )
                         )
-                )
-                shortUrlRepository.save(su)
-            }
+                        shortUrlRepository.save(su)
+                    }
+                } 
 }
