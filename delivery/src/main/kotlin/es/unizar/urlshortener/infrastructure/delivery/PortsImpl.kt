@@ -166,84 +166,18 @@ class QRServiceImpl : QRService {
         }
     }
     override fun getQR(url: String): Boolean{
-       /*
-        var safe: Boolean = false
-        val restTemplate: RestTemplate = RestTemplate()
-        val ResourceUrl: String = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + apiKey;
-        val headers: HttpHeaders = HttpHeaders()
-        println("La url es " + url)
 
-
-        */
-
-
-       /* val requestJson:  JSONObject = json {
-            "client" To json {
-                "clientId" To "urlshortener"
-                "clientVersion" To "1.5.2"
-            }
-            "threatInfo" To json {
-                "threatTypes" To arrayOf("MALWARE", "SOCIAL_ENGINEERING", "THREAT_TYPE_UNSPECIFIED",
-                        "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION")
-                "platformTypes" To "WINDOWS"
-                "threatEntryTypes" To "URL"
-                "threatEntries" To json {
-                    "url" To url
-                }
-            }
-        }*/
-
-     /*
-        println(requestJson)
-
-        try{
-            val entity: HttpEntity<JSONObject> = HttpEntity<JSONObject>(requestJson, headers)
-            val response = restTemplate.postForObject(ResourceUrl, entity, JSONObject::class.java)
-            println(response)
-            //println(response.getHeaders())
-            if (response!!.isEmpty()) {
-                //println("Pagina segura" + response.getBody())
-                safe = true
-                println("Pagina segura")
-            }else{
-                println("Pagina no segura")
-            }
-            return safe
-        } catch (e: HttpClientErrorException ) {
-            println("Exception when calling to safebrowsing:")
-            println(e)
-            return false
-        }
-    */
-
-        val dataToEncode = "https://www.youtube.com/watch?v=EE-xtCF3T94&ab_channel=Shaunpants"
+        val dataToEncode = url
         val eachQRCodeSquareSize = 32 // In Pixels!
         val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize)
         //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
 
-        val qrCodeFile = File("qrcode.png")
+        val qrCodeFile = File("src/main/resources/static/qrcode.png")
         qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
 
         val imageBytes = ByteArrayOutputStream()
                 .also { qrCodeRenderer.writeImage(it) }
                 .toByteArray()
-
-
-        /*val imageOut = ByteArrayOutputStream()
-
-        QRCode(url).render().writeImage(imageOut)
-
-        val imageBytes = imageOut.toByteArray()
-        val resource = ByteArrayResource(imageBytes, IMAGE_PNG_VALUE)
-
-        println("This is the QR service: ")
-        println(resource)
-
-        FileOutputStream("example01.png").use {
-            QRCode("https://github.com/g0dkar/qrcode-kotlin")
-                    .render()
-                    .writeImage(it)
-        }*/
 
         return true;
     }
