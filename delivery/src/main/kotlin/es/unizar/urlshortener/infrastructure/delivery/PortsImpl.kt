@@ -1,32 +1,23 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-import com.google.common.hash.Hashing
-import org.apache.commons.validator.routines.UrlValidator
-import java.nio.charset.StandardCharsets
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.safebrowsing.Safebrowsing
 import com.google.api.services.safebrowsing.model.*
+import com.google.common.hash.Hashing
 import es.unizar.urlshortener.core.*
 import io.github.g0dkar.qrcode.QRCode
 import io.github.g0dkar.qrcode.render.Colors
-import java.net.URI
-import java.net.URL
-import org.springframework.web.client.RestTemplate
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpEntity
 import net.minidev.json.JSONObject
-import org.springframework.core.io.ByteArrayResource
+import org.apache.commons.validator.routines.UrlValidator
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
 import org.springframework.web.client.HttpClientErrorException
-import java.io.ByteArrayOutputStream
-import java.io.FileOutputStream
-import java.util.Deque
-import java.util.ArrayDeque
-import java.net.HttpURLConnection
-import org.springframework.http.MediaType.IMAGE_PNG_VALUE
+import org.springframework.web.client.RestTemplate
 import java.io.File
-
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -148,23 +139,6 @@ class QRServiceImpl : QRService {
     private  val  clientName = "urlshortener"
     private  val clientVersion = "1.5.2"
 
-    fun json(build: JsonObjectBuilder.() -> Unit): JSONObject {
-        return JsonObjectBuilder().json(build)
-    }
-
-    class JsonObjectBuilder {
-        private val deque: Deque<JSONObject> = ArrayDeque()
-
-        fun json(build: JsonObjectBuilder.() -> Unit): JSONObject {
-            deque.push(JSONObject())
-            this.build()
-            return deque.pop()
-        }
-
-        infix fun <T> String.To(value: T) {
-            deque.peek().put(this, value)
-        }
-    }
     override fun getQR(url: String): Boolean{
 
         val dataToEncode = url
@@ -172,16 +146,12 @@ class QRServiceImpl : QRService {
         val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize)
         //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
 
-        val qrCodeFile = File("src/main/resources/static/qrcode.png")
+        val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
         qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
-
-        val imageBytes = ByteArrayOutputStream()
-                .also { qrCodeRenderer.writeImage(it) }
-                .toByteArray()
+        //TimeUnit.SECONDS.sleep(1);
 
         return true;
     }
-
 }
 
 /**

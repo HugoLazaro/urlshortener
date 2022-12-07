@@ -1,5 +1,5 @@
 $(document).ready(
-    function () {
+    async function () {
         $("#shortener").submit(
             function (event) {
                 event.preventDefault();
@@ -7,13 +7,15 @@ $(document).ready(
                     type: "POST",
                     url: "/api/link",
                     data: $(this).serialize(),
-                    success: function (msg, status, request) {
+                    success: async function (msg, status, request) {
                         $("#result").html(
                             "<div class='alert alert-success lead'><a target='_blank' href='"
                             + request.getResponseHeader('Location')
                             + "'>"
                             + request.getResponseHeader('Location')
-                            + "</a></div>");
+                            + "</a></div>"
+                            //+ "<img width='200' src='imagenes/qrcode.png'>"
+                            + "<a class='alert alert-success lead' href='imagenes/qrcode.png'>Codigo QR</a>");
                     },
                     error: function () {
                         $("#result").html(
@@ -22,3 +24,15 @@ $(document).ready(
                 });
             });
     });
+
+function doesFileExist(urlToFile) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('HEAD', urlToFile, false);
+    xhr.send();
+
+    if (xhr.status == "404") {
+        return false;
+    } else {
+        return true;
+    }
+}
