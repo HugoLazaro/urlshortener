@@ -44,7 +44,8 @@ interface UrlShortenerController {
 data class ShortUrlDataIn(
     val url: String,
     val sponsor: String? = null,
-    val customUrl: String
+    val customUrl: String,
+    val wantQR: Boolean
 )
 
 /**
@@ -91,7 +92,8 @@ class UrlShortenerControllerImpl(
                 ip = request.remoteAddr,
                 sponsor = data.sponsor
             ),
-            customUrl = data.customUrl
+            customUrl = data.customUrl,
+            wantQR = data.wantQR
         ).let {
             val h = HttpHeaders()
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()

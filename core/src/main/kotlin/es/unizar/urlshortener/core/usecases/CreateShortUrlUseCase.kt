@@ -9,7 +9,7 @@ import es.unizar.urlshortener.core.*
  * **Note**: This is an example of functionality.
  */
 interface CreateShortUrlUseCase {
-    fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl
+    fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean=false): ShortUrl
 }
 
 /**
@@ -24,19 +24,22 @@ class CreateShortUrlUseCaseImpl(
         private val hashService: HashService,
         private val msgBroker: MessageBrokerService
 ) : CreateShortUrlUseCase {
-    override fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl =
+    override fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean): ShortUrl =
             if (!validatorService.isValid(url)) {
                 throw InvalidUrlException(url)
             } else if (!safeBrowsingService.isSafe(url)) {
                 throw UrlNotSafeException(url)
             } else if (!isReachableService.isReachable(url)) {
                 throw UrlNotReachableException(url)
-            } else if (!qrService.getQR(url)) {
-                throw UrlNotReachableException(url) // Lanzar excepcion correspondiente
             } else{
+                if(wantQR){
+                    if(!qrService.getQR(url)){
+                        throw UrlNotReachableException(url)
+                    }
+                }
                 msgBroker.sendSafeBrowsing("safeBrowsing", url)
-                val id: String = if (customUrl == "") 
-                    hashService.hasUrl(url) 
+                val id: String = if (customUrl == "")
+                    hashService.hasUrl(url)
                     else customUrl
                     val used : Boolean = shortUrlRepository.isHashUsed(id)
                     print(used)
@@ -54,5 +57,5 @@ class CreateShortUrlUseCaseImpl(
                         )
                         shortUrlRepository.save(su)
                     }
-                } 
+                }
 }

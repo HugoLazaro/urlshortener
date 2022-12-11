@@ -24,6 +24,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import java.io.ByteArrayOutputStream
 
 
 class MessageBrokerImpl : MessageBrokerService{
@@ -192,10 +193,20 @@ class QRServiceImpl : QRService {
         val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize)
         //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
 
-        val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
-        //qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
-        //TimeUnit.SECONDS.sleep(1);
+        val fileOut = FileOutputStream("src/main/resources/static/imagenes/qrcode.png")
 
+        QRCode(url).render().writeImage(fileOut)
+
+        /*
+        val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
+        qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
+
+
+        val imageBytes = ByteArrayOutputStream()
+                .also { qrCodeRenderer.writeImage(it) }
+                .toByteArray()
+        println(imageBytes);
+        */
         return true;
     }
 }
