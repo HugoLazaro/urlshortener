@@ -62,6 +62,7 @@ project(":delivery") {
     apply(plugin = "io.spring.dependency-management")
     dependencies {
         "implementation"(project(":core"))
+        "implementation"("org.springframework.boot:spring-boot-starter-amqp")
         "implementation"("org.springframework.boot:spring-boot-starter-web")
         "implementation"("org.springframework.boot:spring-boot-starter-hateoas")
         "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -82,6 +83,7 @@ project(":app") {
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
     dependencies {
+        "implementation"("org.springframework.boot:spring-boot-starter-amqp")
         "implementation"(project(":core"))
         "implementation"(project(":delivery"))
         "implementation"(project(":repositories"))

@@ -11,6 +11,7 @@ import es.unizar.urlshortener.infrastructure.repositories.ShortUrlRepositoryServ
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.amqp.core.Queue;
 
 /**
  * Wires use cases with service implementations, and services implementations with repositories.
@@ -50,6 +51,15 @@ class ApplicationConfiguration(
     fun logClickUseCase() = LogClickUseCaseImpl(clickRepositoryService())
 
     @Bean
+    fun safeBrowsing() = Queue("safeBrowsing") 
+
+    @Bean
+    fun recortar() = Queue("isReachable")
+
+    @Bean
+    fun MessageBroker() = MessageBrokerImpl()
+
+    @Bean
     fun createShortUrlUseCase() =
-        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(), hashService())
+        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(), hashService(), MessageBroker())
 }

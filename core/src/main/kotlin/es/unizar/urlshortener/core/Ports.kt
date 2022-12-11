@@ -60,3 +60,17 @@ interface QRService {
 interface HashService {
     fun hasUrl(url: String): String
 }
+
+/**
+ * [HashService] is the port to the service that creates a hash from a URL.
+ *
+ * **Note**: It is a design decision to create this port. It could be part of the core .
+ */
+interface MessageBrokerService {
+    
+    fun receiveSafeBrowsingRequest(url: String)
+
+    fun receiveCheckReachable(url: String)
+
+    fun sendSafeBrowsing(type: String, url: String)
+}

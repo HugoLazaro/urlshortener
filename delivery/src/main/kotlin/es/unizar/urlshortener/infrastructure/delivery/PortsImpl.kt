@@ -18,7 +18,53 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.core.Queue;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 
+
+class MessageBrokerImpl : MessageBrokerService{
+    @Autowired
+    private val template: RabbitTemplate = RabbitTemplate()
+    private val safeBrowsingCheck: SafeBrowsingServiceImpl = SafeBrowsingServiceImpl()
+    private val isReachableCheck: IsReachableServiceImpl = IsReachableServiceImpl()
+
+    @RabbitListener(queues = ["safeBrowsing"])
+    @RabbitHandler
+    override fun receiveSafeBrowsingRequest(url: String) {
+        println(" [x] Received '" + url + "'")
+        if(safeBrowsingCheck.isSafe(url)){
+            println("Es segura");
+        }else{
+            println("No es segura");
+        }
+    }
+
+    @RabbitListener(queues = ["isReachable"])
+    @RabbitHandler
+    override fun receiveCheckReachable(url: String) {
+        if(isReachableCheck.isReachable(url)){
+            println("Se puede llegar");
+        }else{
+            println("No llega");
+        }
+    }
+
+
+    override fun sendSafeBrowsing(type: String, url: String) {
+        if(type.equals("safeBrowsing")){
+            println(" [x] Sent '" + url + "'" );
+            this.template.convertAndSend("safeBrowsing", url)
+        }else if(type.equals("isReachable")){
+            println(" [x] Sent '" + url + "'" );
+            this.template.convertAndSend("isReachable", url)
+        }
+        
+    }
+}
 
 /**
  * Implementation of the port [ValidatorService].
@@ -147,7 +193,7 @@ class QRServiceImpl : QRService {
         //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
 
         val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
-        qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
+        //qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
         //TimeUnit.SECONDS.sleep(1);
 
         return true;
