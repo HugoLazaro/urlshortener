@@ -1,6 +1,10 @@
 package es.unizar.urlshortener.core.usecases
 
 import es.unizar.urlshortener.core.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * Given an url returns the key that is used to create a short URL.
@@ -24,35 +28,50 @@ class CreateShortUrlUseCaseImpl(
         private val hashService: HashService,
         private val msgBroker: MessageBrokerService
 ) : CreateShortUrlUseCase {
-    override fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl =
-            if (!validatorService.isValid(url)) {
-                throw InvalidUrlException(url)
-            } else if (!safeBrowsingService.isSafe(url)) {
-                throw UrlNotSafeException(url)
-            } else if (!isReachableService.isReachable(url)) {
-                throw UrlNotReachableException(url)
-            } else if (!qrService.getQR(url)) {
-                throw UrlNotReachableException(url) // Lanzar excepcion correspondiente
-            } else{
-                msgBroker.sendSafeBrowsing("safeBrowsing", url)
-                val id: String = if (customUrl == "") 
-                    hashService.hasUrl(url) 
-                    else customUrl
-                    val used : Boolean = shortUrlRepository.isHashUsed(id)
-                    print(used)
-                    if (used) {
-                        throw HashUsedException(id)
-                    } else {
-                        val su = ShortUrl(
-                            hash = id,
-                            redirection = Redirection(target = url),
-                            properties = ShortUrlProperties(
-                                    safe = data.safe,
-                                    ip = data.ip,
-                                    sponsor = data.sponsor
-                            )
-                        )
-                        shortUrlRepository.save(su)
-                    }
-                } 
+    override fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl = runBlocking {
+        if (!validatorService.isValid(url)) {
+            throw InvalidUrlException(url)
+        } else if (!safeBrowsingService.isSafe(url)) {
+            throw UrlNotSafeException(url)
+        } else if (!isReachableService.isReachable(url)) {
+            throw UrlNotReachableException(url)
+        } else if (!qrService.getQR(url)) {
+            throw UrlNotReachableException(url) // Lanzar excepcion correspondiente
+        } else{
+            msgBroker.sendSafeBrowsing("safeBrowsing", url)
+            val id: String = if (customUrl == "")
+                hashService.hasUrl(url)
+            else customUrl
+            /*launch (Dispatchers.Unconfined) {
+                val used : Boolean = shortUrlRepository.isHashUsed(id)
+                print(used)
+                if (used) {
+                    throw HashUsedException(id)
+                }
+            }*/
+
+            val isHashUsedCoroutine = async {
+                shortUrlRepository.isHashUsed(id)
+            }
+
+            val used = isHashUsedCoroutine.await()
+            print("usado ha sido :------- " + used)
+            if (used) {
+                throw HashUsedException(id)
+            } else {
+                val su = ShortUrl(
+                    hash = id,
+                    redirection = Redirection(target = url),
+                    properties = ShortUrlProperties(
+                        safe = data.safe,
+                        ip = data.ip,
+                        sponsor = data.sponsor
+                    )
+                )
+                shortUrlRepository.save(su)
+            }
+
+            }
+        }
+
 }

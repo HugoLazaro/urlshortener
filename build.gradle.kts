@@ -38,6 +38,8 @@ subprojects {
     dependencies {
         "implementation"("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         "implementation"("io.github.g0dkar:qrcode-kotlin-jvm:3.2.0")
+
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:latest.release")
     }
 }
 
@@ -50,6 +52,8 @@ project(":repositories") {
     dependencies {
         "implementation"(project(":core"))
         "implementation"("org.springframework.boot:spring-boot-starter-data-jpa")
+
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:latest.release")
     }
     tasks.getByName<BootJar>("bootJar") {
         enabled = false
@@ -64,6 +68,7 @@ project(":delivery") {
         "implementation"(project(":core"))
         "implementation"("org.springframework.boot:spring-boot-starter-amqp")
         "implementation"("org.springframework.boot:spring-boot-starter-web")
+        //"implementation"("org.springframework.boot:spring-boot-starter-webflux")
         "implementation"("org.springframework.boot:spring-boot-starter-hateoas")
         "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
         "implementation"("commons-validator:commons-validator:$commonsValidatorVersion")
@@ -72,6 +77,8 @@ project(":delivery") {
 
         "testImplementation"("org.springframework.boot:spring-boot-starter-test")
         "testImplementation"("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:latest.release")
     }
     tasks.getByName<BootJar>("bootJar") {
         enabled = false
@@ -95,9 +102,12 @@ project(":app") {
 
         "testImplementation"("org.springframework.boot:spring-boot-starter-test")
         "testImplementation"("org.springframework.boot:spring-boot-starter-web")
+        //"testImplementation"("org.springframework.boot:spring-boot-starter-webflux")
         "testImplementation"("org.springframework.boot:spring-boot-starter-jdbc")
         "testImplementation"("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
         "testImplementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
         "testImplementation"("org.apache.httpcomponents:httpclient")
+
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:latest.release")
     }
 }

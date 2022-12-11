@@ -4,6 +4,7 @@ import es.unizar.urlshortener.core.Click
 import es.unizar.urlshortener.core.ClickRepositoryService
 import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
+import kotlinx.coroutines.runBlocking
 
 /**
  * Implementation of the port [ClickRepositoryService].
@@ -24,7 +25,7 @@ class ShortUrlRepositoryServiceImpl(
 
     override fun save(su: ShortUrl): ShortUrl = shortUrlEntityRepository.save(su.toEntity()).toDomain()
 
-    override fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id) 
+    override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id)
 }
 
 

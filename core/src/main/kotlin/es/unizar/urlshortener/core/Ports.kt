@@ -13,7 +13,7 @@ interface ClickRepositoryService {
 interface ShortUrlRepositoryService {
     fun findByKey(id: String): ShortUrl?
     fun save(su: ShortUrl): ShortUrl
-    fun isHashUsed(id: String): Boolean
+    suspend fun isHashUsed(id: String): Boolean
 }
 
 /**
