@@ -32,10 +32,8 @@ class CreateShortUrlUseCaseImpl(
             } else if (!isReachableService.isReachable(url)) {
                 throw UrlNotReachableException(url)
             } else{
-                if(wantQR){
-                    if(!qrService.getQR(url)){
-                        throw UrlNotReachableException(url)
-                    }
+                if(qrService.getQR(url) == null){
+                    throw UrlNotReachableException(url)
                 }
                 msgBroker.sendSafeBrowsing("safeBrowsing", url)
                 val id: String = if (customUrl == "")

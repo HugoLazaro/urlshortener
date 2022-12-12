@@ -8,14 +8,26 @@ $(document).ready(
                     url: "/api/link",
                     data: $(this).serialize(),
                     success: async function (msg, status, request) {
-                        $("#result").html(
-                            "<div class='alert alert-success lead'><a target='_blank' href='"
-                            + request.getResponseHeader('Location')
-                            + "'>"
-                            + request.getResponseHeader('Location')
-                            + "</a></div>"
-                            //+ "<img width='200' src='imagenes/qrcode.png'>"
-                            + "<a class='alert alert-success lead' href='imagenes/qrcode.png'>Codigo QR</a>");
+                        if (document.getElementById('getQR').checked) {
+                            $("#result").html(
+                                "<div class='alert alert-success lead'><a target='_blank' href='"
+                                + request.getResponseHeader('Location')
+                                + "'>"
+                                + request.getResponseHeader('Location')
+                                + "</a></div>"
+                                + "<img width='350' src='"
+                                + request.getResponseHeader('Location') + "/qr"
+                                + "'>");
+                        }
+                        else{
+                            $("#result").html(
+                                "<div class='alert alert-success lead'><a target='_blank' href='"
+                                + request.getResponseHeader('Location')
+                                + "'>"
+                                + request.getResponseHeader('Location')
+                                + "</a></div>");
+                        }
+
                     },
                     error: function () {
                         $("#result").html(

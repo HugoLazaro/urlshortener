@@ -1,5 +1,6 @@
 package es.unizar.urlshortener
 
+import GetQRUseCaseImpl
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCaseImpl
 import es.unizar.urlshortener.core.usecases.LogClickUseCaseImpl
 import es.unizar.urlshortener.core.usecases.RedirectUseCaseImpl
@@ -40,6 +41,9 @@ class ApplicationConfiguration(
 
     @Bean
     fun getQr() = QRServiceImpl()
+
+    @Bean
+    fun generateQRUseCase() = GetQRUseCaseImpl(shortUrlRepositoryService(), getQr())
 
     @Bean
     fun hashService() = HashServiceImpl()

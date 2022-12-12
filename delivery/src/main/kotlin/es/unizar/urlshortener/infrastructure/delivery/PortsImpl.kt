@@ -24,6 +24,11 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
+import org.springframework.http.MediaType.IMAGE_PNG_VALUE
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import java.io.ByteArrayOutputStream
 
 
@@ -185,30 +190,12 @@ class QRServiceImpl : QRService {
     private  val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
     private  val  clientName = "urlshortener"
     private  val clientVersion = "1.5.2"
-
-    override fun getQR(url: String): Boolean{
-
-        val dataToEncode = url
-        val eachQRCodeSquareSize = 32 // In Pixels!
-        val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize)
-        //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
-
-        val fileOut = FileOutputStream("src/main/resources/static/imagenes/qrcode.png")
-
-        QRCode(url).render().writeImage(fileOut)
-
-        /*
-        val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
-        qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
-
-
-        val imageBytes = ByteArrayOutputStream()
-                .also { qrCodeRenderer.writeImage(it) }
-                .toByteArray()
-        println(imageBytes);
-        */
-        return true;
-    }
+    override fun getQR(url: String) : ByteArrayResource =
+            ByteArrayOutputStream().let{
+                QRCode(url).render().writeImage(it)
+                val imageBytes = it.toByteArray()
+                ByteArrayResource(imageBytes, IMAGE_PNG_VALUE)
+            }
 }
 
 /**
