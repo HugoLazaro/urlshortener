@@ -31,34 +31,21 @@ class CreateShortUrlUseCaseImpl(
     override fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean): ShortUrl = runBlocking {
         if (!validatorService.isValid(url)) {
             throw InvalidUrlException(url)
-        } else if (!safeBrowsingService.isSafe(url)) {
-            throw UrlNotSafeException(url)
-        } else if (!isReachableService.isReachable(url)) {
+        } else if(qrService.getQR(url) == null){
             throw UrlNotReachableException(url)
-        } else{
-            if(wantQR){
-                if(!qrService.getQR(url)){
-                    throw UrlNotReachableException(url)
-                }
-            }
-            msgBroker.sendSafeBrowsing("safeBrowsing", url)
+        } else {
+    
             val id: String = if (customUrl == "")
                 hashService.hasUrl(url)
-            else customUrl
-            /*launch (Dispatchers.Unconfined) {
-                val used : Boolean = shortUrlRepository.isHashUsed(id)
-                print(used)
-                if (used) {
-                    throw HashUsedException(id)
-                }
-            }*/
-
+                else customUrl
+                
             val isHashUsedCoroutine = async {
                 shortUrlRepository.isHashUsed(id)
             }
-
+    
             val used = isHashUsedCoroutine.await()
             print("usado ha sido :------- " + used)
+
             if (used) {
                 throw HashUsedException(id)
             } else {
@@ -66,15 +53,17 @@ class CreateShortUrlUseCaseImpl(
                     hash = id,
                     redirection = Redirection(target = url),
                     properties = ShortUrlProperties(
-                        safe = data.safe,
-                        ip = data.ip,
-                        sponsor = data.sponsor
+                            safe = data.safe,
+                            ip = data.ip,
+                            sponsor = data.sponsor
                     )
                 )
+                msgBroker.sendSafeBrowsing("safeBrowsing", url,id)
+                msgBroker.sendSafeBrowsing("isReachable", url,id)
                 shortUrlRepository.save(su)
             }
-
-            }
         }
+    }
+            
 
 }

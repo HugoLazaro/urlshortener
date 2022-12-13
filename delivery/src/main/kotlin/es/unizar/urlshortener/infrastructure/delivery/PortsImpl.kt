@@ -24,10 +24,17 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
+import org.springframework.http.MediaType.IMAGE_PNG_VALUE
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import java.io.ByteArrayOutputStream
 
 
-class MessageBrokerImpl : MessageBrokerService{
+class MessageBrokerImpl (
+    private val shortUrlRepository: ShortUrlRepositoryService
+) :MessageBrokerService{
     @Autowired
     private val template: RabbitTemplate = RabbitTemplate()
     private val safeBrowsingCheck: SafeBrowsingServiceImpl = SafeBrowsingServiceImpl()
@@ -36,32 +43,46 @@ class MessageBrokerImpl : MessageBrokerService{
     @RabbitListener(queues = ["safeBrowsing"])
     @RabbitHandler
     override fun receiveSafeBrowsingRequest(url: String) {
-        println(" [x] Received '" + url + "'")
-        if(safeBrowsingCheck.isSafe(url)){
-            println("Es segura");
+        var realUrl =  url.split(" ")[0]
+        var hash = url.split(" ")[1]
+        println(" [x] Received '" + realUrl + "'")
+        if(!safeBrowsingCheck.isSafe(realUrl)){
+            // lanzar excepción 
+             println("No es segura");
+
+            //throwExc("safeBrowsing",realUrl)
         }else{
-            println("No es segura");
+            //Ponerla como segura
+            shortUrlRepository.updateSafeInfo(hash)
+            println("Es segura");
         }
     }
-
+   
     @RabbitListener(queues = ["isReachable"])
     @RabbitHandler
     override fun receiveCheckReachable(url: String) {
-        if(isReachableCheck.isReachable(url)){
-            println("Se puede llegar");
+        var realUrl =  url.split(" ")[0]
+        var hash = url.split(" ")[1]
+       println(" [x] Received reachable'" + realUrl + "'")
+        if(!isReachableCheck.isReachable(realUrl)){
+            //lanzar excepción
+            println("No puede llegar");
+            //throw UrlNotReachableException(realUrl)
         }else{
-            println("No llega");
+            // Ponerla como alcanzable
+            shortUrlRepository.updateReachableInfo(hash)
+            println("Llega");
         }
     }
 
 
-    override fun sendSafeBrowsing(type: String, url: String) {
+    override fun sendSafeBrowsing(type: String, url: String, idHash: String) {
         if(type.equals("safeBrowsing")){
-            println(" [x] Sent '" + url + "'" );
-            this.template.convertAndSend("safeBrowsing", url)
+            println(" [x] Sent safe'" + url + "'" );
+            this.template.convertAndSend("safeBrowsing", url + " " + idHash)
         }else if(type.equals("isReachable")){
-            println(" [x] Sent '" + url + "'" );
-            this.template.convertAndSend("isReachable", url)
+            println(" [x] Sent reachable'" + url + "'" );
+            this.template.convertAndSend("isReachable", url + " " + idHash)
         }
         
     }
@@ -185,30 +206,12 @@ class QRServiceImpl : QRService {
     private  val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
     private  val  clientName = "urlshortener"
     private  val clientVersion = "1.5.2"
-
-    override fun getQR(url: String): Boolean{
-
-        val dataToEncode = url
-        val eachQRCodeSquareSize = 32 // In Pixels!
-        val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize)
-        //val qrCodeRenderer = QRCode(dataToEncode).render(eachQRCodeSquareSize,0, Colors.YELLOW, Colors.RED, Colors.PURPLE)
-
-        val fileOut = FileOutputStream("src/main/resources/static/imagenes/qrcode.png")
-
-        QRCode(url).render().writeImage(fileOut)
-
-        /*
-        val qrCodeFile = File("src/main/resources/static/imagenes/qrcode.png")
-        qrCodeFile.outputStream().use { qrCodeRenderer.writeImage(it,"PNG") }
-
-
-        val imageBytes = ByteArrayOutputStream()
-                .also { qrCodeRenderer.writeImage(it) }
-                .toByteArray()
-        println(imageBytes);
-        */
-        return true;
-    }
+    override fun getQR(url: String) : ByteArrayResource =
+            ByteArrayOutputStream().let{
+                QRCode(url).render().writeImage(it)
+                val imageBytes = it.toByteArray()
+                ByteArrayResource(imageBytes, IMAGE_PNG_VALUE)
+            }
 }
 
 /**

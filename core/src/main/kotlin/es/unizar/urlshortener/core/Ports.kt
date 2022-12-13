@@ -1,5 +1,8 @@
 package es.unizar.urlshortener.core
 
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.ResponseEntity
+
 /**
  * [ClickRepositoryService] is the port to the repository that provides persistence to [Clicks][Click].
  */
@@ -14,6 +17,10 @@ interface ShortUrlRepositoryService {
     fun findByKey(id: String): ShortUrl?
     fun save(su: ShortUrl): ShortUrl
     suspend fun isHashUsed(id: String): Boolean
+    fun updateSafeInfo(id: String)
+    fun updateReachableInfo(id: String)
+    fun isSafe(id: String): Boolean
+    fun isReachable(id: String): Boolean
 }
 
 /**
@@ -49,7 +56,7 @@ interface IsReachableService {
  * **Note**: It is a design decision to create this port. It could be part of the core .
  */
 interface QRService {
-    fun getQR(url: String): Boolean
+    fun getQR(url: String) : ByteArrayResource
 }
 
 /**
@@ -72,5 +79,5 @@ interface MessageBrokerService {
 
     fun receiveCheckReachable(url: String)
 
-    fun sendSafeBrowsing(type: String, url: String)
+    fun sendSafeBrowsing(type: String, url: String, idHash:String)
 }
