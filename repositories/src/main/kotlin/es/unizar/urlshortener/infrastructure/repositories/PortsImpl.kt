@@ -42,6 +42,7 @@ class ShortUrlRepositoryServiceImpl(
     }
     override fun isSafe(id: String): Boolean{
         var infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain() 
+        print("Esto es lo que decide" + infoUrl)
         if(infoUrl?.properties?.safe == true){
             return true
         }else{

@@ -7,6 +7,7 @@ import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
+import es.unizar.urlshortener.core.*
 import org.apache.http.entity.ContentType.IMAGE_PNG
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.hateoas.server.mvc.linkTo
@@ -73,12 +74,14 @@ class UrlShortenerControllerImpl(
     val logClickUseCase: LogClickUseCase,
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val generateQRUseCase: GenerateQRUseCase,
+    val shortUrlRepository: ShortUrlRepositoryService
 ) : UrlShortenerController {
 
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
             //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
+           
             val getBrowserAndOS = UserAgentInfoImpl()
             var y = request.getHeader("User-Agent")
             var browser = getBrowserAndOS.getBrowser(y)
@@ -87,30 +90,50 @@ class UrlShortenerControllerImpl(
             logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = browser,platform = os))
             val h = HttpHeaders()
             h.location = URI.create(it.target)
-            ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))
+            if (!shortUrlRepository.isSafe(id)) {
+                print("Excepcion no segura")
+                throw UrlNotSafeException(id)
+            } else{
+                ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))   
+            }
         }
 
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
         createShortUrlUseCase.create(
             url = data.url,
-            data = ShortUrlProperties(
+            data = ShortUrlProperties (
                 ip = request.remoteAddr,
                 sponsor = data.sponsor
             ),
             customUrl = data.customUrl,
             wantQR = data.wantQR
         ).let {
-            val h = HttpHeaders()
-            val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
-            h.location = url
-            val response = ShortUrlDataOut(
-                url = url,
-                properties = mapOf(
-                    "safe" to it.properties.safe
+            try {
+                            // sleep for one second
+                            Thread.sleep(1000)
+                        } catch (e: InterruptedException) {
+                            e.printStackTrace()
+                        }
+            print("\nEjecuta el let\n")
+             if (!shortUrlRepository.isSafe(it.hash)) {
+                print("Excepcion no segura")
+                throw UrlNotSafeException(data.url)
+            } else{
+                val h = HttpHeaders()
+                
+                print("Sigue chill as fuck")
+                val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
+                h.location = url
+                val response = ShortUrlDataOut(
+                    url = url,
+                    properties = mapOf(
+                        "safe" to it.properties.safe
+                    )
                 )
-            )
-            ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
+                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
+            }
+            
         }
 
     @GetMapping("/{hash}/qr")
