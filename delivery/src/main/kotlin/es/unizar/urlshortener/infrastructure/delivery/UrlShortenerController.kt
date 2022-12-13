@@ -93,7 +93,9 @@ class UrlShortenerControllerImpl(
             if (!shortUrlRepository.isSafe(id)) {
                 print("Excepcion no segura")
                 throw UrlNotSafeException(id)
-            } else{
+            } else if (!shortUrlRepository.isReachable(id)) {
+                throw UrlNotReachableException(id)
+            }else{
                 ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))   
             }
         }
@@ -119,7 +121,9 @@ class UrlShortenerControllerImpl(
              if (!shortUrlRepository.isSafe(it.hash)) {
                 print("Excepcion no segura")
                 throw UrlNotSafeException(data.url)
-            } else{
+            } else if (!shortUrlRepository.isReachable(it.hash)) {
+                throw UrlNotReachableException(data.url)
+            }else{
                 val h = HttpHeaders()
                 
                 print("Sigue chill as fuck")

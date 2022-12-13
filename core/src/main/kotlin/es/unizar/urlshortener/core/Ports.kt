@@ -20,6 +20,7 @@ interface ShortUrlRepositoryService {
     fun updateSafeInfo(id: String)
     fun updateReachableInfo(id: String)
     fun isSafe(id: String): Boolean
+    fun isReachable(id: String): Boolean
 }
 
 /**

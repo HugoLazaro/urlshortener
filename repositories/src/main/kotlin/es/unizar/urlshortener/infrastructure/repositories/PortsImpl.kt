@@ -42,8 +42,17 @@ class ShortUrlRepositoryServiceImpl(
     }
     override fun isSafe(id: String): Boolean{
         var infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain() 
-        print("Esto es lo que decide" + infoUrl)
+        print("Esto es lo que de" + infoUrl)
         if(infoUrl?.properties?.safe == true){
+            return true
+        }else{
+            return false
+        }
+    }
+    override fun isReachable(id: String): Boolean{
+        var infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain() 
+        print("Esto es lo que de" + infoUrl)
+        if(infoUrl?.properties?.reachable == true){
             return true
         }else{
             return false
