@@ -27,15 +27,11 @@ class CreateShortUrlUseCaseImpl(
     override fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean): ShortUrl =
             if (!validatorService.isValid(url)) {
                 throw InvalidUrlException(url)
-            } else if (!safeBrowsingService.isSafe(url)) {
-                throw UrlNotSafeException(url)
-            } else if (!isReachableService.isReachable(url)) {
-                throw UrlNotReachableException(url)
             } else{
                 if(qrService.getQR(url) == null){
                     throw UrlNotReachableException(url)
                 }
-                msgBroker.sendSafeBrowsing("safeBrowsing", url)
+        
                 val id: String = if (customUrl == "")
                     hashService.hasUrl(url)
                     else customUrl
@@ -53,6 +49,8 @@ class CreateShortUrlUseCaseImpl(
                                     sponsor = data.sponsor
                             )
                         )
+                        msgBroker.sendSafeBrowsing("safeBrowsing", url,id)
+                        msgBroker.sendSafeBrowsing("isReachable", url,id)
                         shortUrlRepository.save(su)
                     }
                 }

@@ -84,7 +84,7 @@ class UrlShortenerControllerImpl(
             var browser = getBrowserAndOS.getBrowser(y)
             var os = getBrowserAndOS.getOS(y)
             println("El browser es: " + browser + " y el OS es: " + os)
-            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr))
+            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = browser,platform = os))
             val h = HttpHeaders()
             h.location = URI.create(it.target)
             ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))

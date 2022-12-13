@@ -17,6 +17,9 @@ interface ShortUrlRepositoryService {
     fun findByKey(id: String): ShortUrl?
     fun save(su: ShortUrl): ShortUrl
     fun isHashUsed(id: String): Boolean
+    fun updateSafeInfo(id: String)
+    fun updateReachableInfo(id: String)
+    fun isSafe(id: String): Boolean
 }
 
 /**
@@ -75,5 +78,5 @@ interface MessageBrokerService {
 
     fun receiveCheckReachable(url: String)
 
-    fun sendSafeBrowsing(type: String, url: String)
+    fun sendSafeBrowsing(type: String, url: String, idHash:String)
 }

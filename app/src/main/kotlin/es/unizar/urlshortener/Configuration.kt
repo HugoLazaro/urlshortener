@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.BindingBuilder
+import org.springframework.amqp.core.Declarables
+import org.springframework.amqp.core.TopicExchange
+import org.springframework.amqp.core.Binding
 
 /**
  * Wires use cases with service implementations, and services implementations with repositories.
@@ -24,6 +28,8 @@ class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
     @Autowired val clickEntityRepository: ClickEntityRepository
 ) {
+    private  val queueSafeBrowsing = "safeBrowsing"
+    private  val queueIsReachable = "isReachable"
     @Bean
     fun clickRepositoryService() = ClickRepositoryServiceImpl(clickEntityRepository)
 
@@ -58,10 +64,24 @@ class ApplicationConfiguration(
     fun safeBrowsing() = Queue("safeBrowsing") 
 
     @Bean
-    fun recortar() = Queue("isReachable")
+    fun reachable() = Queue("isReachable")
 
     @Bean
-    fun MessageBroker() = MessageBrokerImpl()
+    fun exchange():  TopicExchange{
+        return TopicExchange("amq.topic")
+    }
+
+    @Bean
+    fun bindSafeBrowsing(): Binding {
+        return BindingBuilder.bind(safeBrowsing()).to(exchange()).with(queueSafeBrowsing)
+    }
+
+    @Bean
+    fun bindReachable(): Binding {
+        return BindingBuilder.bind(reachable()).to(exchange()).with(queueIsReachable)
+    }
+    @Bean
+    fun MessageBroker() = MessageBrokerImpl(shortUrlRepositoryService())
 
     @Bean
     fun createShortUrlUseCase() =
