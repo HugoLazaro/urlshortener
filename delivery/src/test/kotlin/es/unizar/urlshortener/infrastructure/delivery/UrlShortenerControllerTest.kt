@@ -91,12 +91,17 @@ class UrlShortenerControllerTest {
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
         given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/"))
+        given(userAgentInfo.getBrowser("key")).willReturn("a")
+        given(userAgentInfo.getOS("key")).willReturn("b")
+        given(shortUrlRepository.isSafe("key")).willReturn(true)
+        given(shortUrlRepository.isReachable("key")).willReturn(true)
 
         mockMvc.perform(get("/{id}", "key"))
+            .andDo(print())
             .andExpect(status().isTemporaryRedirect)
             .andExpect(redirectedUrl("http://example.com/"))
 
-        verify(logClickUseCase).logClick("key", ClickProperties(ip = "127.0.0.1",referrer="http://example.com/"))
+        verify(logClickUseCase).logClick("key", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
     }
 
     @Test
@@ -137,6 +142,56 @@ class UrlShortenerControllerTest {
              .andExpect(status().isCreated)
              .andExpect(redirectedUrl("http://localhost/f684a3c4"))
              .andExpect(jsonPath("$.url").value("http://localhost/f684a3c4"))
+     }
+
+    @Test
+     fun `creates returns Forbidden if it can compute a hash but is not safe`() {
+         given(
+             createShortUrlUseCase.create(
+                 url = "http://example.com/",
+                 data = ShortUrlProperties(ip = "127.0.0.1"),
+                 customUrl = "",
+                 wantQR = false
+             )
+         ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+        given(shortUrlRepository.isSafe("f684a3c4")).willReturn(false)
+        given(shortUrlRepository.isReachable("f684a3c4")).willReturn(true)
+
+         mockMvc.perform(
+             post("/api/link")
+                 .param("url", "http://example.com/")
+                 .param("customUrl", "")
+                 .param("wantQR","false")
+                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+         )
+             .andDo(print())
+             .andExpect(status().isForbidden)
+             .andExpect(jsonPath("$.statusCode").value(403))
+     }
+
+     @Test
+     fun `creates returns not safe error if it can compute a hash but is not safe`() {
+        given(
+            createShortUrlUseCase.create(
+                url = "http://example.com/",
+                data = ShortUrlProperties(ip = "127.0.0.1"),
+                customUrl = "",
+                wantQR = false
+            )
+        ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+        given(shortUrlRepository.isSafe("f684a3c4")).willReturn(true)
+        given(shortUrlRepository.isReachable("f684a3c4")).willReturn(false)
+
+        mockMvc.perform(
+            post("/api/link")
+                .param("url", "http://example.com/")
+                .param("customUrl", "")
+                .param("wantQR","false")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        )
+            .andDo(print())
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.statusCode").value(400))
      }
 
      @Test
