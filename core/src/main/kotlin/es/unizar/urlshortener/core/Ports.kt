@@ -81,3 +81,4 @@ interface MessageBrokerService {
 
     fun sendSafeBrowsing(type: String, url: String, idHash:String)
 }
+

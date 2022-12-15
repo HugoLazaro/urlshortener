@@ -73,29 +73,28 @@ class UrlShortenerControllerImpl(
     val redirectUseCase: RedirectUseCase,
     val logClickUseCase: LogClickUseCase,
     val createShortUrlUseCase: CreateShortUrlUseCase,
+    val shortUrlRepository: ShortUrlRepositoryService,
     val generateQRUseCase: GenerateQRUseCase,
-    val shortUrlRepository: ShortUrlRepositoryService
+    val userAgentInfo: UserAgetInfo
 ) : UrlShortenerController {
-
+    //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
+           
+            //val getBrowserAndOS = UserAgentInfoImpl()
+            //var y = request.getHeader("User-Agent")
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
-            //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
-           
-            val getBrowserAndOS = UserAgentInfoImpl()
-            var y = request.getHeader("User-Agent")
-            var browser = getBrowserAndOS.getBrowser(y)
-            var os = getBrowserAndOS.getOS(y)
-            println("El browser es: " + browser + " y el OS es: " + os)
-            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = browser,platform = os))
+            val a = userAgentInfo.getBrowser(request.getHeader("User-Agent"))
+            val b = userAgentInfo.getOS(request.getHeader("User-Agent"))
+            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = a,platform =b))
             val h = HttpHeaders()
-            h.location = URI.create(it.target)
             if (!shortUrlRepository.isSafe(id)) {
                 print("Excepcion no segura")
                 throw UrlNotSafeException(id)
             } else if (!shortUrlRepository.isReachable(id)) {
                 throw UrlNotReachableException(id)
             }else{
+                h.location = URI.create(it.target)
                 ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))   
             }
         }
@@ -112,21 +111,18 @@ class UrlShortenerControllerImpl(
             wantQR = data.wantQR
         ).let {
             try {
-                            // sleep for one second
-                            Thread.sleep(1000)
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
-                        }
-            print("\nEjecuta el let\n")
-             if (!shortUrlRepository.isSafe(it.hash)) {
-                print("Excepcion no segura")
+                // sleep for one second
+                Thread.sleep(1000)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            if (!shortUrlRepository.isSafe(it.hash)) {
+                print("Excepcion no segura: -----> " + it.hash)
                 throw UrlNotSafeException(data.url)
             } else if (!shortUrlRepository.isReachable(it.hash)) {
                 throw UrlNotReachableException(data.url)
             }else{
                 val h = HttpHeaders()
-                
-                print("Sigue chill as fuck")
                 val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
                 h.location = url
                 val response = ShortUrlDataOut(

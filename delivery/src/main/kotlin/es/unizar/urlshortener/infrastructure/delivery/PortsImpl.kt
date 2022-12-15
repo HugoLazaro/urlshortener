@@ -45,16 +45,9 @@ class MessageBrokerImpl (
     override fun receiveSafeBrowsingRequest(url: String) {
         var realUrl =  url.split(" ")[0]
         var hash = url.split(" ")[1]
-        println(" [x] Received '" + realUrl + "'")
-        if(!safeBrowsingCheck.isSafe(realUrl)){
-            // lanzar excepción 
-             println("No es segura");
-
-            //throwExc("safeBrowsing",realUrl)
-        }else{
-            //Ponerla como segura
-            shortUrlRepository.updateSafeInfo(hash)
-            println("Es segura");
+        println(" [x] Received safe broswing'" + realUrl + "'")
+        if(safeBrowsingCheck.isSafe(realUrl)){
+             shortUrlRepository.updateSafeInfo(hash)
         }
     }
    
@@ -64,14 +57,8 @@ class MessageBrokerImpl (
         var realUrl =  url.split(" ")[0]
         var hash = url.split(" ")[1]
        println(" [x] Received reachable'" + realUrl + "'")
-        if(!isReachableCheck.isReachable(realUrl)){
-            //lanzar excepción
-            println("No puede llegar");
-            //throw UrlNotReachableException(realUrl)
-        }else{
-            // Ponerla como alcanzable
-            shortUrlRepository.updateReachableInfo(hash)
-            println("Llega");
+        if(isReachableCheck.isReachable(realUrl)){
+             shortUrlRepository.updateReachableInfo(hash)
         }
     }
 
@@ -100,7 +87,6 @@ class ValidatorServiceImpl : ValidatorService {
 }
 class IsReachableServiceImpl : IsReachableService{
     override fun isReachable(url: String): Boolean{
-        println("La url es " + url)
         //https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
         try{
             val myurl : URL = URL(url)
@@ -111,10 +97,8 @@ class IsReachableServiceImpl : IsReachableService{
             val responseCode = huc.getResponseCode()
     
             if(HttpURLConnection.HTTP_OK == responseCode){
-                println("Llega la peticion")
                 return true
             }else if(HttpURLConnection.HTTP_BAD_REQUEST == responseCode){
-                println("No llega")
             }
         }catch(ex: Exception){
               println("La peticion no llega ")
@@ -157,7 +141,6 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         val restTemplate: RestTemplate = RestTemplate()  
         val ResourceUrl: String = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + apiKey;
         val headers: HttpHeaders = HttpHeaders()
-        println("La url es " + url)
       
         val requestJson:  JSONObject = json {
             "client" To json {
@@ -179,7 +162,6 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         try{
             val entity: HttpEntity<JSONObject> = HttpEntity<JSONObject>(requestJson, headers)
             val response = restTemplate.postForObject(ResourceUrl, entity, JSONObject::class.java)
-            println(response)
             //println(response.getHeaders())
             if (response!!.isEmpty()) {
                 //println("Pagina segura" + response.getBody())

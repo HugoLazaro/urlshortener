@@ -28,22 +28,20 @@ class ShortUrlRepositoryServiceImpl(
     override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id) 
     override fun updateSafeInfo(id: String) {
         var newInfoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
-        println(newInfoUrl)
         newInfoUrl?.properties?.safe = true
-        println(newInfoUrl)
+        println("--------Añadida seguridad----------\n" + newInfoUrl)
         if (newInfoUrl != null)shortUrlEntityRepository.save((newInfoUrl as ShortUrl).toEntity()).toDomain()
     }
     override fun updateReachableInfo(id: String) {
         var newInfoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
-        println(newInfoUrl)
         newInfoUrl?.properties?.reachable = true
-        println(newInfoUrl)
+        println("--------Añadida alcanzabilidad----------\n" +newInfoUrl)
         if (newInfoUrl != null)shortUrlEntityRepository.save((newInfoUrl as ShortUrl).toEntity()).toDomain()
         
     }
     override fun isSafe(id: String): Boolean{
         var infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain() 
-        print("Esto es lo que de" + infoUrl)
+        println("\n\n"+infoUrl)
         if(infoUrl?.properties?.safe == true){
             return true
         }else{
@@ -52,7 +50,6 @@ class ShortUrlRepositoryServiceImpl(
     }
     override fun isReachable(id: String): Boolean{
         var infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain() 
-        print("Esto es lo que de" + infoUrl)
         if(infoUrl?.properties?.reachable == true){
             return true
         }else{

@@ -34,6 +34,9 @@ subprojects {
     }
     tasks.withType<Test> {
         useJUnitPlatform()
+        this.testLogging {
+        this.showStandardStreams = true
+        }
     }
     dependencies {
         "implementation"("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

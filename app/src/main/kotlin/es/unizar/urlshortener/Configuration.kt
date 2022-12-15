@@ -38,12 +38,14 @@ class ApplicationConfiguration(
 
     @Bean
     fun validatorService() = ValidatorServiceImpl()
-
+    
     @Bean
     fun safeBrowsingService() = SafeBrowsingServiceImpl()
 
     @Bean
     fun isReachableService() = IsReachableServiceImpl()
+    @Bean
+    fun userAgentInfo() = UserAgentInfoImpl() 
 
     @Bean
     fun getQr() = QRServiceImpl()
@@ -83,7 +85,8 @@ class ApplicationConfiguration(
     @Bean
     fun MessageBroker() = MessageBrokerImpl(shortUrlRepositoryService())
 
+    
     @Bean
     fun createShortUrlUseCase() =
-        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(), hashService(), MessageBroker())
+        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(),hashService(), MessageBroker())
 }
