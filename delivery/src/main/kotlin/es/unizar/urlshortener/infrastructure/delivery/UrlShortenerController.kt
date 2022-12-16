@@ -105,7 +105,7 @@ class UrlShortenerControllerImpl(
             val h = HttpHeaders()
             if (!shortUrlRepository.isSafe(id)) {
                 print("Excepcion no segura")
-                throw UrlNotSafeException(data.url)
+                throw UrlNotSafeException(id)
             } else if (!shortUrlRepository.isReachable(id)) {
                 throw UrlNotReachableException(id)
             }else{
@@ -125,6 +125,13 @@ class UrlShortenerControllerImpl(
             customUrl = data.customUrl,
             wantQR = data.wantQR
         ).let {
+            try {
+                // sleep for one second
+                Thread.sleep(500)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            println("Comienza la comprobacion")
             if(!shortUrlRepository.everythingChecked(it.hash)){
                 throw NotValidatedYetException(data.url)
             }
@@ -140,7 +147,8 @@ class UrlShortenerControllerImpl(
                 val response = ShortUrlDataOut(
                     url = url,
                     properties = mapOf(
-                        "safe" to if (it.properties.safe != null) it.properties.safe as Any else false
+                        "safe" to if (it.properties.safe != null) it.properties.safe as Any else true,
+                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else true
                     )
                 )
                 ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
