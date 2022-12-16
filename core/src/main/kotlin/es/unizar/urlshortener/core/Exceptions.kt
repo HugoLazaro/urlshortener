@@ -11,3 +11,7 @@ class UrlNotReachableException(val url: String) : Exception("[$url] is a not rea
 class HashUsedException(val hash: String) : Exception("[$hash] is already mapped, so cant be mapped again")
 
 class QRException(val hash: String) : Exception("QR [$hash] doesn't exist")
+
+class ShowShortUrlInfoException(val id: String) : Exception("Short Url with hash [$id] doesn't exist")
+
+class TooManyRequestsException(val id:String) : Exception("Too many requests to the Short Url with hash [$id]")

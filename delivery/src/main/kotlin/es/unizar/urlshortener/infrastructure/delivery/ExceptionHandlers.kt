@@ -1,15 +1,12 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-import es.unizar.urlshortener.core.InvalidUrlException
-import es.unizar.urlshortener.core.RedirectionNotFound
-import es.unizar.urlshortener.core.UrlNotSafeException
-import es.unizar.urlshortener.core.UrlNotReachableException
-import es.unizar.urlshortener.core.HashUsedException
+import es.unizar.urlshortener.core.*
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -42,6 +39,11 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(value = [HashUsedException::class])
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected fun HashUsed(ex: HashUsedException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
+
+    @ResponseBody
+    @ExceptionHandler()
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    protected fun TooManyRequests(ex: TooManyRequestsException) = ErrorMessage(HttpStatus.TOO_MANY_REQUESTS.value(), ex.message)
 }
 
 data class ErrorMessage(

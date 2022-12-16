@@ -1,6 +1,7 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
 import GenerateQRUseCase
+import ShowShortUrlInfoUseCase
 import com.google.common.net.HttpHeaders.CONTENT_TYPE
 import es.unizar.urlshortener.core.ClickProperties
 import es.unizar.urlshortener.core.ShortUrlProperties
@@ -8,6 +9,7 @@ import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import es.unizar.urlshortener.core.*
+import org.apache.http.entity.ContentType.APPLICATION_JSON
 import org.apache.http.entity.ContentType.IMAGE_PNG
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.hateoas.server.mvc.linkTo
@@ -41,7 +43,19 @@ interface UrlShortenerController {
      */
     fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut>
 
+    /**
+     * Generates a QR code given a short identified by its [hash].
+     *
+     * **Note**: Delivery of use case [GenerateQRUseCase].
+     */
     fun generateQR(hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource>
+
+    /**
+     * Shows relevant information about a short url identified by its [id].
+     *
+     * **Note**: Delivery of use case [ShowShortUrlInfoUseCase].
+     */
+    fun showShortUrlInfo(id: String, request: HttpServletRequest) : ResponseEntity<ShortUrlDataOut>
 }
 
 /**
@@ -75,7 +89,8 @@ class UrlShortenerControllerImpl(
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val shortUrlRepository: ShortUrlRepositoryService,
     val generateQRUseCase: GenerateQRUseCase,
-    val userAgentInfo: UserAgetInfo
+    val userAgentInfo: UserAgetInfo,
+    val showShortUrlInfoUseCase: ShowShortUrlInfoUseCase,
 ) : UrlShortenerController {
     //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
            
@@ -143,4 +158,42 @@ class UrlShortenerControllerImpl(
                 h.set(CONTENT_TYPE, IMAGE_PNG.toString())
                 ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
             }
+
+    @GetMapping("/api/link/{id}")
+    override fun showShortUrlInfo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
+        showShortUrlInfoUseCase.showShortUrlInfo(id).let {
+            val h = HttpHeaders()
+            h.set(CONTENT_TYPE, APPLICATION_JSON.toString())
+            val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
+
+            // Si la URI no es alcanzable o segura
+            /*f (!it.properties.reachable) {
+                h.set(RETRY_AFTER, 1000.toString())
+                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.BAD_REQUEST)
+            }
+            // Si la URI existe y se han enviado demasiadas peticiones
+            else if () {
+                h.set(RETRY_AFTER, 1000.toString())
+                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.TOO_MANY_REQUESTS)
+            }
+            // Si la URI existe y no se puede utilizar ya que no es segura
+            else if (!it.properties.safe) {
+                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.FORBIDDEN)
+
+            }*/
+            val response = ShortUrlDataOut(
+                url = url,
+                properties = mapOf<String, Any>(
+                    "hash" to it.hash,
+                    "safe" to it.properties.safe,
+                    "reachable" to it.properties.reachable,
+                    "country" to if (it.properties.country != null) it.properties.country as Any else "",
+                    "created" to it.created,
+                    "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
+                    "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
+                    "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else ""
+                )
+            )
+            ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.OK)
+        }
 }
