@@ -53,13 +53,12 @@ class CreateShortUrlUseCaseImpl(
                     hash = id,
                     redirection = Redirection(target = url),
                     properties = ShortUrlProperties(
-                            safe = data.safe,
                             ip = data.ip,
                             sponsor = data.sponsor
                     )
                 )
-                msgBroker.sendSafeBrowsing("safeBrowsing", url,id)
-                msgBroker.sendSafeBrowsing("isReachable", url,id)
+                msgBroker.sendSafeBrowsing(url,id)
+                //msgBroker.sendSafeBrowsing("isReachable", url,id)
                 shortUrlRepository.save(su)
             }
         }

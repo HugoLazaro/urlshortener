@@ -17,10 +17,11 @@ interface ShortUrlRepositoryService {
     fun findByKey(id: String): ShortUrl?
     fun save(su: ShortUrl): ShortUrl
     suspend fun isHashUsed(id: String): Boolean
-    fun updateSafeInfo(id: String)
-    fun updateReachableInfo(id: String)
+    fun updateSafeInfo(id: String, result: Boolean)
+    fun updateReachableInfo(id: String, result: Boolean)
     fun isSafe(id: String): Boolean
     fun isReachable(id: String): Boolean
+    fun everythingChecked(id: String): Boolean
 }
 
 /**
@@ -79,6 +80,6 @@ interface MessageBrokerService {
 
     fun receiveCheckReachable(url: String)
 
-    fun sendSafeBrowsing(type: String, url: String, idHash:String)
+    fun sendSafeBrowsing(url: String, idHash:String)
 }
 

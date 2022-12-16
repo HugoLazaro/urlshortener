@@ -33,45 +33,42 @@ import java.io.ByteArrayOutputStream
 
 
 class MessageBrokerImpl (
-    private val shortUrlRepository: ShortUrlRepositoryService
+    private val shortUrlRepository: ShortUrlRepositoryService,
+    private val safeBrowsingCheck: SafeBrowsingServiceImpl,
+    private val template: RabbitTemplate, 
+    private val isReachableCheck: IsReachableServiceImpl
 ) :MessageBrokerService{
-    @Autowired
-    private val template: RabbitTemplate = RabbitTemplate()
-    private val safeBrowsingCheck: SafeBrowsingServiceImpl = SafeBrowsingServiceImpl()
-    private val isReachableCheck: IsReachableServiceImpl = IsReachableServiceImpl()
 
     @RabbitListener(queues = ["safeBrowsing"])
     @RabbitHandler
     override fun receiveSafeBrowsingRequest(url: String) {
-        var realUrl =  url.split(" ")[0]
-        var hash = url.split(" ")[1]
+        val realUrl =  url.split(" ")[0]
+        val hash = url.split(" ")[1]
         println(" [x] Received safe broswing'" + realUrl + "'")
-        if(safeBrowsingCheck.isSafe(realUrl)){
-             shortUrlRepository.updateSafeInfo(hash)
-        }
+        var result = safeBrowsingCheck.isSafe(realUrl)
+        //if(safeBrowsingCheck.isSafe(realUrl)){
+          //  result = true
+            shortUrlRepository.updateSafeInfo(hash,result)
+        //}
     }
    
     @RabbitListener(queues = ["isReachable"])
     @RabbitHandler
     override fun receiveCheckReachable(url: String) {
-        var realUrl =  url.split(" ")[0]
-        var hash = url.split(" ")[1]
+        val realUrl =  url.split(" ")[0]
+        val hash = url.split(" ")[1]
        println(" [x] Received reachable'" + realUrl + "'")
-        if(isReachableCheck.isReachable(realUrl)){
-             shortUrlRepository.updateReachableInfo(hash)
-        }
+       var result = isReachableCheck.isReachable(realUrl)
+        //if(isReachableCheck.isReachable(realUrl)){
+          //  result = true
+             shortUrlRepository.updateReachableInfo(hash,result)
+        //}
     }
 
 
-    override fun sendSafeBrowsing(type: String, url: String, idHash: String) {
-        if(type.equals("safeBrowsing")){
-            println(" [x] Sent safe'" + url + "'" );
-            this.template.convertAndSend("safeBrowsing", url + " " + idHash)
-        }else if(type.equals("isReachable")){
-            println(" [x] Sent reachable'" + url + "'" );
-            this.template.convertAndSend("isReachable", url + " " + idHash)
-        }
-        
+    override fun sendSafeBrowsing(url: String, idHash: String) {
+        println(" [x] Sent test reachable and safe'" + url + "'" );
+        this.template.convertAndSend("tests","doTests", url + " " + idHash)
     }
 }
 

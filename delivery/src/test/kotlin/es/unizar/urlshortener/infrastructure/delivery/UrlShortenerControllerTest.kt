@@ -5,6 +5,7 @@ import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import ShowShortUrlInfoUseCase
 import GenerateQRUseCase
 import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.Assertions.*
@@ -78,6 +79,9 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var userAgentInfo: UserAgetInfo
     
+    @MockBean
+    private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
+    
     
    /*  @Test
     fun testSend() {
@@ -90,31 +94,31 @@ class UrlShortenerControllerTest {
     }*/
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
-        given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/"))
-        given(userAgentInfo.getBrowser("key")).willReturn("a")
-        given(userAgentInfo.getOS("key")).willReturn("b")
-        given(shortUrlRepository.isSafe("key")).willReturn(true)
-        given(shortUrlRepository.isReachable("key")).willReturn(true)
+        given(redirectUseCase.redirectTo("idHash")).willReturn(Redirection("http://example.com/"))
+        given(userAgentInfo.getBrowser("UrlAgentHeader")).willReturn("a")
+        given(userAgentInfo.getOS("UrlAgentHeader")).willReturn("b")
+        given(shortUrlRepository.isSafe("idHash")).willReturn(true)
+        given(shortUrlRepository.isReachable("idHash")).willReturn(true)
 
-        mockMvc.perform(get("/{id}", "key"))
+        mockMvc.perform(get("/{id}", "idHash").header("User-Agent","UrlAgentHeader"))
             .andDo(print())
             .andExpect(status().isTemporaryRedirect)
             .andExpect(redirectedUrl("http://example.com/"))
 
-        verify(logClickUseCase).logClick("key", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
+        verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
     }
 
     @Test
     fun `redirectTo returns a not found when the key does not exist`() {
-        given(redirectUseCase.redirectTo("key"))
-            .willAnswer { throw RedirectionNotFound("key") }
+        given(redirectUseCase.redirectTo("idHash"))
+            .willAnswer { throw RedirectionNotFound("idHash") }
          println("\n\n---------------------------------------El location es 2:\n\n")
-        mockMvc.perform(get("/{id}", "key"))
+        mockMvc.perform(get("/{id}", "idHash"))
             .andDo(print())
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.statusCode").value(404))
 
-        verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
+        verify(logClickUseCase, never()).logClick("idHash", ClickProperties(ip = "127.0.0.1"))
     }
 
 
@@ -128,6 +132,7 @@ class UrlShortenerControllerTest {
                  wantQR = false
              )
          ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+         given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
         given(shortUrlRepository.isSafe("f684a3c4")).willReturn(true)
         given(shortUrlRepository.isReachable("f684a3c4")).willReturn(true)
 
@@ -154,8 +159,8 @@ class UrlShortenerControllerTest {
                  wantQR = false
              )
          ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+        given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
         given(shortUrlRepository.isSafe("f684a3c4")).willReturn(false)
-        given(shortUrlRepository.isReachable("f684a3c4")).willReturn(true)
 
          mockMvc.perform(
              post("/api/link")
@@ -179,6 +184,7 @@ class UrlShortenerControllerTest {
                 wantQR = false
             )
         ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+        given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
         given(shortUrlRepository.isSafe("f684a3c4")).willReturn(true)
         given(shortUrlRepository.isReachable("f684a3c4")).willReturn(false)
 
@@ -192,6 +198,30 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
+     }
+
+    @Test
+     fun `creates returns error if it can compute a hash but is not validated yet`() {
+         given(
+             createShortUrlUseCase.create(
+                 url = "http://example.com/",
+                 data = ShortUrlProperties(ip = "127.0.0.1"),
+                 customUrl = "",
+                 wantQR = false
+             )
+         ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
+        given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(false)
+
+         mockMvc.perform(
+             post("/api/link")
+                 .param("url", "http://example.com/")
+                 .param("customUrl", "")
+                 .param("wantQR","false")
+                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+         )
+             .andDo(print())
+             .andExpect(status().isBadRequest)
+             .andExpect(jsonPath("$.statusCode").value(400))
      }
 
      @Test
@@ -216,6 +246,8 @@ class UrlShortenerControllerTest {
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
     }
+
+    
     @Test
     fun `test SafeBrowsing service`() {
         assertEquals(true, safeBrowsingService.isSafe("https://example.com/"))

@@ -36,8 +36,8 @@ data class Redirection(
 data class ShortUrlProperties(
     val ip: String? = null,
     val sponsor: String? = null,
-    var safe: Boolean = false,
-    var reachable: Boolean = false,
+    var safe: Boolean? = null,
+    var reachable: Boolean? = null,
     val owner: String? = null,
     val country: String? = null
 )

@@ -105,7 +105,7 @@ class UrlShortenerControllerImpl(
             val h = HttpHeaders()
             if (!shortUrlRepository.isSafe(id)) {
                 print("Excepcion no segura")
-                throw UrlNotSafeException(id)
+                throw UrlNotSafeException(data.url)
             } else if (!shortUrlRepository.isReachable(id)) {
                 throw UrlNotReachableException(id)
             }else{
@@ -125,13 +125,10 @@ class UrlShortenerControllerImpl(
             customUrl = data.customUrl,
             wantQR = data.wantQR
         ).let {
-            try {
-                // sleep for one second
-                Thread.sleep(1000)
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
+            if(!shortUrlRepository.everythingChecked(it.hash)){
+                throw NotValidatedYetException(data.url)
             }
-            if (!shortUrlRepository.isSafe(it.hash)) {
+            else if (!shortUrlRepository.isSafe(it.hash)) { /////////////////////!!!!!!!!!!!!!Devolver 400 no 403
                 print("Excepcion no segura: -----> " + it.hash)
                 throw UrlNotSafeException(data.url)
             } else if (!shortUrlRepository.isReachable(it.hash)) {
@@ -143,7 +140,7 @@ class UrlShortenerControllerImpl(
                 val response = ShortUrlDataOut(
                     url = url,
                     properties = mapOf(
-                        "safe" to it.properties.safe
+                        "safe" to if (it.properties.safe != null) it.properties.safe as Any else false
                     )
                 )
                 ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
@@ -185,8 +182,8 @@ class UrlShortenerControllerImpl(
                 url = url,
                 properties = mapOf<String, Any>(
                     "hash" to it.hash,
-                    "safe" to it.properties.safe,
-                    "reachable" to it.properties.reachable,
+                    "safe" to if (it.properties.safe != null) it.properties.safe as Any else false,
+                    "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else false,
                     "country" to if (it.properties.country != null) it.properties.country as Any else "",
                     "created" to it.created,
                     "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",

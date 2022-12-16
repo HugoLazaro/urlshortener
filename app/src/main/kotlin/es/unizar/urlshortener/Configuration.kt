@@ -18,6 +18,7 @@ import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.Declarables
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.core.Binding
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 
 /**
  * Wires use cases with service implementations, and services implementations with repositories.
@@ -31,6 +32,10 @@ class ApplicationConfiguration(
 ) {
     private  val queueSafeBrowsing = "safeBrowsing"
     private  val queueIsReachable = "isReachable"
+
+    @Autowired
+    private val template: RabbitTemplate =  RabbitTemplate()
+
     @Bean
     fun clickRepositoryService() = ClickRepositoryServiceImpl(clickEntityRepository)
 
@@ -74,20 +79,20 @@ class ApplicationConfiguration(
 
     @Bean
     fun exchange():  TopicExchange{
-        return TopicExchange("amq.topic")
+        return TopicExchange("tests")
     }
 
     @Bean
     fun bindSafeBrowsing(): Binding {
-        return BindingBuilder.bind(safeBrowsing()).to(exchange()).with(queueSafeBrowsing)
+        return BindingBuilder.bind(safeBrowsing()).to(exchange()).with("doTests")
     }
 
     @Bean
     fun bindReachable(): Binding {
-        return BindingBuilder.bind(reachable()).to(exchange()).with(queueIsReachable)
+        return BindingBuilder.bind(reachable()).to(exchange()).with("doTests")
     }
     @Bean
-    fun MessageBroker() = MessageBrokerImpl(shortUrlRepositoryService())
+    fun MessageBroker() = MessageBrokerImpl(shortUrlRepositoryService(),safeBrowsingService(),template,IsReachableServiceImpl())
 
     
     @Bean
