@@ -4,36 +4,25 @@ import es.unizar.urlshortener.core.*
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import ShowShortUrlInfoUseCase
-import GenerateQRUseCase
-import org.hamcrest.CoreMatchers.notNullValue
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
+import es.unizar.urlshortener.core.usecases.GetQRUseCase
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.core.io.*
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.mockito.Mockito.mock
-import org.springframework.test.web.servlet.get
-import java.util.*
-import org.springframework.http.HttpStatus
 import org.springframework.amqp.rabbit.core.RabbitTemplate
-import  org.assertj.core.api.Assertions.assertThatCode
-import  org.mockito.ArgumentMatchers.eq;
-import org.mockito.Mockito
 
 @WebMvcTest
 @AutoConfigureMockMvc
@@ -74,10 +63,10 @@ class UrlShortenerControllerTest {
     private lateinit var shortUrlRepository: ShortUrlRepositoryService
 
     @MockBean
-    private lateinit var generateQRUseCase: GenerateQRUseCase
+    private lateinit var getQRUseCase: GetQRUseCase
 
     @MockBean
-    private lateinit var userAgentInfo: UserAgetInfo
+    private lateinit var userAgentInfo: UserAgentInfo
     
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase

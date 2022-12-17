@@ -1,7 +1,6 @@
 package es.unizar.urlshortener.core
 
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.ResponseEntity
 
 /**
  * [ClickRepositoryService] is the port to the repository that provides persistence to [Clicks][Click].

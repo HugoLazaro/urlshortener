@@ -1,9 +1,7 @@
 package es.unizar.urlshortener.core.usecases
 
 import es.unizar.urlshortener.core.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -31,20 +29,18 @@ class CreateShortUrlUseCaseImpl(
     override fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean): ShortUrl = runBlocking {
         if (!validatorService.isValid(url)) {
             throw InvalidUrlException(url)
-        } else if(qrService.getQR(url) == null){
-            throw UrlNotReachableException(url)
-        } else {
-    
+        } else run {
+
             val id: String = if (customUrl == "")
                 hashService.hasUrl(url)
-                else customUrl
-                
+            else customUrl
+
             val isHashUsedCoroutine = async {
                 shortUrlRepository.isHashUsed(id)
             }
-    
+
             val used = isHashUsedCoroutine.await()
-            println("usado ha sido :------- " + used)
+            println("usado ha sido :------- $used")
 
             if (used) {
                 throw HashUsedException(id)
@@ -53,8 +49,8 @@ class CreateShortUrlUseCaseImpl(
                     hash = id,
                     redirection = Redirection(target = url),
                     properties = ShortUrlProperties(
-                            ip = data.ip,
-                            sponsor = data.sponsor
+                        ip = data.ip,
+                        sponsor = data.sponsor
                     )
                 )
                 msgBroker.sendSafeBrowsing(url,id)

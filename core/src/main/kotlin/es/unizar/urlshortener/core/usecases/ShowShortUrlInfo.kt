@@ -1,5 +1,6 @@
+package es.unizar.urlshortener.core.usecases
+
 import es.unizar.urlshortener.core.*
-import org.springframework.core.io.*
 
 interface ShowShortUrlInfoUseCase {
     fun showShortUrlInfo(id: String) : ShortUrl

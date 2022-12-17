@@ -1,7 +1,7 @@
 package es.unizar.urlshortener
 
-import GetQRUseCaseImpl
-import ShowShortUrlInfoUseCaseImpl
+import es.unizar.urlshortener.core.usecases.GetQRUseCaseImpl
+import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCaseImpl
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCaseImpl
 import es.unizar.urlshortener.core.usecases.LogClickUseCaseImpl
 import es.unizar.urlshortener.core.usecases.RedirectUseCaseImpl
@@ -13,9 +13,8 @@ import es.unizar.urlshortener.infrastructure.repositories.ShortUrlRepositoryServ
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.BindingBuilder
-import org.springframework.amqp.core.Declarables
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -30,8 +29,8 @@ class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
     @Autowired val clickEntityRepository: ClickEntityRepository
 ) {
-    private  val queueSafeBrowsing = "safeBrowsing"
-    private  val queueIsReachable = "isReachable"
+    //private  val queueSafeBrowsing = "safeBrowsing"
+    //private  val queueIsReachable = "isReachable"
 
     @Autowired
     private val template: RabbitTemplate =  RabbitTemplate()
@@ -92,10 +91,10 @@ class ApplicationConfiguration(
         return BindingBuilder.bind(reachable()).to(exchange()).with("doTests")
     }
     @Bean
-    fun MessageBroker() = MessageBrokerImpl(shortUrlRepositoryService(),safeBrowsingService(),template,IsReachableServiceImpl())
+    fun messageBroker() = MessageBrokerImpl(shortUrlRepositoryService(),safeBrowsingService(),template,IsReachableServiceImpl())
 
     
     @Bean
     fun createShortUrlUseCase() =
-        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(),hashService(), MessageBroker())
+        CreateShortUrlUseCaseImpl(shortUrlRepositoryService(), validatorService(), safeBrowsingService(), isReachableService(), getQr(),hashService(), messageBroker())
 }

@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -28,27 +27,27 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     @ResponseBody
     @ExceptionHandler(value = [UrlNotSafeException::class])
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    protected fun UrlNotSafe(ex: UrlNotSafeException) = ErrorMessage    (HttpStatus.FORBIDDEN.value(), ex.message)
+    protected fun urlNotSafe(ex: UrlNotSafeException) = ErrorMessage    (HttpStatus.FORBIDDEN.value(), ex.message)
 
     @ResponseBody
     @ExceptionHandler(value = [UrlNotReachableException::class])
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    protected fun UrlNotReachable(ex: UrlNotReachableException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
+    protected fun urlNotReachable(ex: UrlNotReachableException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
 
-        @ResponseBody
+    @ResponseBody
     @ExceptionHandler(value = [NotValidatedYetException::class])
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    protected fun UrlNotReachable(ex: NotValidatedYetException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
+    protected fun urlNotReachable(ex: NotValidatedYetException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
 
     @ResponseBody
     @ExceptionHandler(value = [HashUsedException::class])
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    protected fun HashUsed(ex: HashUsedException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
+    protected fun hashUsed(ex: HashUsedException) = ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message)
 
     @ResponseBody
-    @ExceptionHandler()
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-    protected fun TooManyRequests(ex: TooManyRequestsException) = ErrorMessage(HttpStatus.TOO_MANY_REQUESTS.value(), ex.message)
+    protected fun tooManyRequests(ex: TooManyRequestsException) = ErrorMessage(HttpStatus.TOO_MANY_REQUESTS.value(), ex.message)
 }
 
 data class ErrorMessage(

@@ -1,7 +1,7 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-import GenerateQRUseCase
-import ShowShortUrlInfoUseCase
+import es.unizar.urlshortener.core.usecases.GetQRUseCase
+import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
 import com.google.common.net.HttpHeaders.CONTENT_TYPE
 import es.unizar.urlshortener.core.ClickProperties
 import es.unizar.urlshortener.core.ShortUrlProperties
@@ -46,7 +46,7 @@ interface UrlShortenerController {
     /**
      * Generates a QR code given a short identified by its [hash].
      *
-     * **Note**: Delivery of use case [GenerateQRUseCase].
+     * **Note**: Delivery of use case [GetQRUseCase].
      */
     fun generateQR(hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource>
 
@@ -88,8 +88,8 @@ class UrlShortenerControllerImpl(
     val logClickUseCase: LogClickUseCase,
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val shortUrlRepository: ShortUrlRepositoryService,
-    val generateQRUseCase: GenerateQRUseCase,
-    val userAgentInfo: UserAgetInfo,
+    val getQRUseCase: GetQRUseCase,
+    val userAgentInfo: UserAgentInfo,
     val showShortUrlInfoUseCase: ShowShortUrlInfoUseCase,
 ) : UrlShortenerController {
     //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
@@ -140,7 +140,7 @@ class UrlShortenerControllerImpl(
                 throw UrlNotSafeException(data.url)
             } else if (!shortUrlRepository.isReachable(it.hash)) {
                 throw UrlNotReachableException(data.url)
-            }else{
+            } else {
                 val h = HttpHeaders()
                 val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
                 h.location = url
@@ -158,7 +158,7 @@ class UrlShortenerControllerImpl(
 
     @GetMapping("/{hash}/qr")
     override fun generateQR(@PathVariable hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource> =
-            generateQRUseCase.generateQR(hash).let {
+            getQRUseCase.generateQR(hash).let {
                 val h = HttpHeaders()
                 h.set(CONTENT_TYPE, IMAGE_PNG.toString())
                 ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
@@ -188,7 +188,7 @@ class UrlShortenerControllerImpl(
             }*/
             val response = ShortUrlDataOut(
                 url = url,
-                properties = mapOf<String, Any>(
+                properties = mapOf(
                     "hash" to it.hash,
                     "safe" to if (it.properties.safe != null) it.properties.safe as Any else false,
                     "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else false,

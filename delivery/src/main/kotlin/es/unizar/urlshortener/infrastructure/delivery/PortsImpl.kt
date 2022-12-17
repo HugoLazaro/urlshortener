@@ -1,34 +1,23 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-import com.google.api.services.safebrowsing.model.*
 import com.google.common.hash.Hashing
 import es.unizar.urlshortener.core.*
 import io.github.g0dkar.qrcode.QRCode
-import io.github.g0dkar.qrcode.render.Colors
 import net.minidev.json.JSONObject
 import org.apache.commons.validator.routines.UrlValidator
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
-import java.io.File
-import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
-import java.util.concurrent.TimeUnit
-import org.springframework.amqp.rabbit.annotation.RabbitHandler;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.core.Queue;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler
+import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.http.MediaType.IMAGE_PNG_VALUE
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import java.io.ByteArrayOutputStream
 
 
@@ -44,8 +33,8 @@ class MessageBrokerImpl (
     override fun receiveSafeBrowsingRequest(url: String) {
         val realUrl =  url.split(" ")[0]
         val hash = url.split(" ")[1]
-        println(" [x] Received safe broswing'" + realUrl + "'")
-        var result = safeBrowsingCheck.isSafe(realUrl)
+        println(" [x] Received safe broswing'$realUrl'")
+        val result = safeBrowsingCheck.isSafe(realUrl)
         //if(safeBrowsingCheck.isSafe(realUrl)){
           //  result = true
             shortUrlRepository.updateSafeInfo(hash,result)
@@ -57,8 +46,8 @@ class MessageBrokerImpl (
     override fun receiveCheckReachable(url: String) {
         val realUrl =  url.split(" ")[0]
         val hash = url.split(" ")[1]
-       println(" [x] Received reachable'" + realUrl + "'")
-       var result = isReachableCheck.isReachable(realUrl)
+       println(" [x] Received reachable'$realUrl'")
+       val result = isReachableCheck.isReachable(realUrl)
         //if(isReachableCheck.isReachable(realUrl)){
           //  result = true
              shortUrlRepository.updateReachableInfo(hash,result)
@@ -67,8 +56,8 @@ class MessageBrokerImpl (
 
 
     override fun sendSafeBrowsing(url: String, idHash: String) {
-        println(" [x] Sent test reachable and safe'" + url + "'" );
-        this.template.convertAndSend("tests","doTests", url + " " + idHash)
+        println(" [x] Sent test reachable and safe'$url'")
+        this.template.convertAndSend("tests","doTests", "$url $idHash")
     }
 }
 
@@ -86,16 +75,17 @@ class IsReachableServiceImpl : IsReachableService{
     override fun isReachable(url: String): Boolean{
         //https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
         try{
-            val myurl : URL = URL(url)
+            val myurl = URL(url)
             val huc =  myurl.openConnection()  as HttpURLConnection
             huc.readTimeout = 7000
             huc.connectTimeout = 7000
             
-            val responseCode = huc.getResponseCode()
+            val responseCode = huc.responseCode
     
             if(HttpURLConnection.HTTP_OK == responseCode){
                 return true
             }else if(HttpURLConnection.HTTP_BAD_REQUEST == responseCode){
+                //Empty?
             }
         }catch(ex: Exception){
               println("La peticion no llega ")
@@ -110,10 +100,8 @@ class IsReachableServiceImpl : IsReachableService{
 class SafeBrowsingServiceImpl : SafeBrowsingService {
 
     private  val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
-    private  val  clientName = "urlshortener"
-    private  val clientVersion = "1.5.2"
 
-    fun json(build: JsonObjectBuilder.() -> Unit): JSONObject {
+    private fun json(build: JsonObjectBuilder.() -> Unit): JSONObject {
         return JsonObjectBuilder().json(build)
     }
 
@@ -126,31 +114,31 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
             return deque.pop()
         }
 
-        infix fun <T> String.To(value: T) {
-            deque.peek().put(this, value)
+        infix fun <T> String.to(value: T) {
+            deque.peek()[this] = value
         }
     }
 
     //https://testsafebrowsing.appspot.com/
     //https://stackoverflow.com/questions/41861449/kotlin-dsl-for-creating-json-objects-without-creating-garbage
     override fun isSafe(url: String): Boolean{
-        var safe: Boolean = false
-        val restTemplate: RestTemplate = RestTemplate()  
-        val ResourceUrl: String = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + apiKey;
-        val headers: HttpHeaders = HttpHeaders()
+        var safe = false
+        val restTemplate = RestTemplate()
+        val resourceUrl = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=$apiKey"
+        val headers = HttpHeaders()
       
         val requestJson:  JSONObject = json {
-            "client" To json {
-                "clientId" To "urlshortener"
-                "clientVersion" To "1.5.2"
+            "client" to json {
+                "clientId" to "urlshortener"
+                "clientVersion" to "1.5.2"
             }
-            "threatInfo" To json {
-                "threatTypes" To arrayOf("MALWARE", "SOCIAL_ENGINEERING", "THREAT_TYPE_UNSPECIFIED",
+            "threatInfo" to json {
+                "threatTypes" to arrayOf("MALWARE", "SOCIAL_ENGINEERING", "THREAT_TYPE_UNSPECIFIED",
                                 "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION")
-                "platformTypes" To "WINDOWS"
-                "threatEntryTypes" To "URL"
-                "threatEntries" To json {
-                    "url" To url
+                "platformTypes" to "WINDOWS"
+                "threatEntryTypes" to "URL"
+                "threatEntries" to json {
+                    "url" to url
                 }
             }
         }
@@ -158,7 +146,7 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         println(requestJson)
         try{
             val entity: HttpEntity<JSONObject> = HttpEntity<JSONObject>(requestJson, headers)
-            val response = restTemplate.postForObject(ResourceUrl, entity, JSONObject::class.java)
+            val response = restTemplate.postForObject(resourceUrl, entity, JSONObject::class.java)
             //println(response.getHeaders())
             if (response!!.isEmpty()) {
                 //println("Pagina segura" + response.getBody())
@@ -182,9 +170,6 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
 
 class QRServiceImpl : QRService {
 
-    private  val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
-    private  val  clientName = "urlshortener"
-    private  val clientVersion = "1.5.2"
     override fun getQR(url: String) : ByteArrayResource =
             ByteArrayOutputStream().let{
                 QRCode(url).render().writeImage(it)
