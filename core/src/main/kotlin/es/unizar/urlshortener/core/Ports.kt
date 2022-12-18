@@ -21,6 +21,7 @@ interface ShortUrlRepositoryService {
     fun isSafe(id: String): Boolean
     fun isReachable(id: String): Boolean
     fun everythingChecked(id: String): Boolean
+    fun hasSponsor(id: String): Boolean
 }
 
 /**

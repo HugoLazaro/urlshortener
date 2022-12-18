@@ -24,7 +24,9 @@ class ShortUrlRepositoryServiceImpl(
 
     override fun save(su: ShortUrl): ShortUrl = shortUrlEntityRepository.save(su.toEntity()).toDomain()
 
-    override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id) 
+    override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id)
+
+    override fun hasSponsor(id: String): Boolean = shortUrlEntityRepository.findByHash(id)?.sponsor != ""
     
     override fun updateSafeInfo(id: String, result: Boolean ) {
         val newInfoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()

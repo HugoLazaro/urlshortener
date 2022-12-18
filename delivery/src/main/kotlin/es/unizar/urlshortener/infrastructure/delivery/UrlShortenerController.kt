@@ -41,7 +41,7 @@ interface UrlShortenerController {
      *
      * **Note**: Delivery of use case [CreateShortUrlUseCase].
      */
-    fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut>
+    fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlInfo>
 
     /**
      * Generates a QR code given a short identified by its [hash].
@@ -55,7 +55,7 @@ interface UrlShortenerController {
      *
      * **Note**: Delivery of use case [ShowShortUrlInfoUseCase].
      */
-    fun showShortUrlInfo(id: String, request: HttpServletRequest) : ResponseEntity<ShortUrlDataOut>
+    fun showShortUrlInfo(id: String, request: HttpServletRequest) : ResponseEntity<ShortUrlInfo>
 }
 
 /**
@@ -74,6 +74,15 @@ data class ShortUrlDataIn(
 data class ShortUrlDataOut(
     val url: URI? = null,
     val properties: Map<String, Any> = emptyMap()
+)
+
+/**
+ * Data returned to /api/link/{id} request.
+ */
+data class ShortUrlInfo(
+    val url: String = "",
+    val properties: Map<String, Any> = emptyMap(),
+    val actions: Map<String, Any> = emptyMap()
 )
 
 
@@ -106,11 +115,17 @@ class UrlShortenerControllerImpl(
             if(!shortUrlRepository.everythingChecked(id)){
                 throw NotValidatedYetException(id)
             }
-            else if (!shortUrlRepository.isSafe(id)) {
+            else if (!shortUrlRepository.isSafe(id)) { // 403 Forbidden
                 print("Excepcion no segura")
                 throw UrlNotSafeException(id)
-            } else if (!shortUrlRepository.isReachable(id)) {
+            } else if (!shortUrlRepository.isReachable(id)) { // 400 Bad Request y cabecera Retry-After
                 throw UrlNotReachableException(id)
+            } else if (false) {
+                throw TooManyRequestsException(id)
+            }
+            else if (shortUrlRepository.hasSponsor(id)){ // La URI recortada existe, se puede hacer redireccion y tiene publicidad
+                h.location = URI.create(it.target)
+                ResponseEntity<Void>(h, HttpStatus.valueOf(200))
             }else{
                 h.location = URI.create(it.target)
                 ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))   
@@ -118,7 +133,7 @@ class UrlShortenerControllerImpl(
         }
 
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
-    override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
+    override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         createShortUrlUseCase.create(
             url = data.url,
             data = ShortUrlProperties (
@@ -146,15 +161,28 @@ class UrlShortenerControllerImpl(
             } else {
                 val h = HttpHeaders()
                 val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
+                h.contentType = MediaType.APPLICATION_JSON
                 h.location = url
-                val response = ShortUrlDataOut(
-                    url = url,
+                val lengthHash = it.hash.length
+                val apilink = url.toString().substring(0, url.toString().length - lengthHash)
+                val response = ShortUrlInfo(
+                    url = it.redirection.target,
                     properties = mapOf(
                         "safe" to if (it.properties.safe != null) it.properties.safe as Any else true,
-                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else true
+                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else true,
+                        "country" to if (it.properties.country != null) it.properties.country as Any else "",
+                        "created" to it.created,
+                        "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
+                        "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
+                        "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else ""
+                    ),
+                    actions = mapOf<String, Any>(
+                        "redirect" to "$url",
+                        "qr" to ("$url/qr"),
+                        "information" to ("${apilink}api/link/${it.hash}")
                     )
                 )
-                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.CREATED)
+                ResponseEntity<ShortUrlInfo>(response, h, HttpStatus.CREATED)
             }
             
         }
@@ -162,46 +190,62 @@ class UrlShortenerControllerImpl(
     @GetMapping("/{hash}/qr")
     override fun generateQR(@PathVariable hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource> =
             getQRUseCase.generateQR(hash).let {
+                // Si la URI no es alcanzable o segura
+                if (!shortUrlRepository.isReachable(hash)) {
+                    throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotReachableException(it1.target) }!!
+                }
+                // Si la URI existe y se han enviado demasiadas peticiones
+                else if (false) {
+                    throw TooManyRequestsException(hash)
+                }
+                // Si la URI existe y no se puede utilizar ya que no es segura
+                else if (!shortUrlRepository.isSafe(hash)) {
+                    throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotSafeException(it1.target) }!!
+                }
                 val h = HttpHeaders()
                 h.set(CONTENT_TYPE, IMAGE_PNG.toString())
                 ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
             }
 
     @GetMapping("/api/link/{id}")
-    override fun showShortUrlInfo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
+    override fun showShortUrlInfo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         showShortUrlInfoUseCase.showShortUrlInfo(id).let {
             val h = HttpHeaders()
             h.set(CONTENT_TYPE, APPLICATION_JSON.toString())
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
 
             // Si la URI no es alcanzable o segura
-            /*f (!it.properties.reachable) {
-                h.set(RETRY_AFTER, 1000.toString())
-                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.BAD_REQUEST)
+            if (!it.properties.reachable!!) {
+                throw UrlNotReachableException(it.redirection.target)
             }
             // Si la URI existe y se han enviado demasiadas peticiones
-            else if () {
-                h.set(RETRY_AFTER, 1000.toString())
-                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.TOO_MANY_REQUESTS)
+            else if (false) {
+                throw TooManyRequestsException(it.hash)
             }
             // Si la URI existe y no se puede utilizar ya que no es segura
-            else if (!it.properties.safe) {
-                ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.FORBIDDEN)
-
-            }*/
-            val response = ShortUrlDataOut(
-                url = url,
-                properties = mapOf(
+            else if (!it.properties.safe!!) {
+                throw UrlNotSafeException(it.redirection.target)
+            }
+            val lengthHash = it.hash.length
+            val apilink = url.toString().substring(0, url.toString().length - lengthHash)
+            val response = ShortUrlInfo(
+                url = it.redirection.target,
+                properties = mapOf<String, Any>(
                     "hash" to it.hash,
-                    "safe" to if (it.properties.safe != null) it.properties.safe as Any else false,
-                    "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else false,
+                    "safe" to it.properties.safe as Any,
+                    "reachable" to it.properties.reachable as Any,
                     "country" to if (it.properties.country != null) it.properties.country as Any else "",
                     "created" to it.created,
                     "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
                     "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
                     "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else ""
+                ),
+                actions = mapOf<String, Any>(
+                    "redirect" to "$url",
+                    "qr" to ("$url/qr"),
+                    "information" to ("${apilink}api/link/${it.hash}")
                 )
             )
-            ResponseEntity<ShortUrlDataOut>(response, h, HttpStatus.OK)
+            ResponseEntity<ShortUrlInfo>(response, h, HttpStatus.OK)
         }
 }
