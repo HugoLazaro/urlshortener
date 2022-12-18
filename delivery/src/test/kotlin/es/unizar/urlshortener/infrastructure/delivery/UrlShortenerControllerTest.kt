@@ -4,25 +4,41 @@ import es.unizar.urlshortener.core.*
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
 import es.unizar.urlshortener.core.usecases.GetQRUseCase
+import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.core.io.*
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.mockito.Mockito.mock
+import org.springframework.test.web.servlet.get
+import java.util.*
+import org.springframework.http.HttpStatus
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import  org.assertj.core.api.Assertions.assertThatCode
+import  org.mockito.ArgumentMatchers.eq;
+import org.mockito.Mockito
+import org.springframework.amqp.rabbit.core.RabbitAdmin
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 
 @WebMvcTest
 @AutoConfigureMockMvc
@@ -32,18 +48,26 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate
         RestResponseEntityExceptionHandler::class,
         IsReachableServiceImpl::class,
         SafeBrowsingServiceImpl::class,
+        UserAgentInfoImpl::class,
         MessageBrokerImpl::class]
 )
 class UrlShortenerControllerTest {
 
     @Autowired
     private lateinit var subject:  MessageBrokerImpl 
+    
+    @Autowired
     @MockBean
     private lateinit var rabbitTemplateMock: RabbitTemplate
+    
+    @MockBean
+    private lateinit var rabbitAdminMock: RabbitAdmin
+
 
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+   
     @Autowired
     private lateinit var isReachableService: IsReachableServiceImpl
     
@@ -56,6 +80,9 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var logClickUseCase: LogClickUseCase
 
+   // @Autowired
+    //private lateinit var messageBrokerTesting: MessageBrokerImpl
+
     @MockBean
     private lateinit var createShortUrlUseCase: CreateShortUrlUseCase
 
@@ -63,7 +90,7 @@ class UrlShortenerControllerTest {
     private lateinit var shortUrlRepository: ShortUrlRepositoryService
 
     @MockBean
-    private lateinit var getQRUseCase: GetQRUseCase
+    private lateinit var generateQRUseCase: GetQRUseCase
 
     @MockBean
     private lateinit var userAgentInfo: UserAgentInfo
@@ -72,20 +99,48 @@ class UrlShortenerControllerTest {
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
     
     
-   /*  @Test
+
     fun testSend() {
-       // rabbitTemplateMock = Mockito.mock(RabbitTemplate)
+       /* rabbitTemplateMock = Mockito.mock(RabbitTemplate)
         subject = MessageBrokerImpl(shortUrlRepository)
         //given(subject.sendSafeBrowsing("safeBrowsing","Test sendSafeBrowsing","aaaaaaa")).doesNotThrowAnyException()
         assertAll(subject.sendSafeBrowsing("safeBrowsing","Test sendSafeBrowsing","aaaaaaa"))
         Mockito.verify(rabbitTemplateMock)
-            .convertAndSend(eq("safeBrowsing"), eq("Test sendSafeBrowsing"),eq("aaaaaaa"))
-    }*/
+            .convertAndSend(eq("safeBrowsing"), eq("Test sendSafeBrowsing"),eq("aaaaaaa"))*/
+        val rabbitT= RabbitTemplate()
+        
+        val messageBrokerTest = MessageBrokerImpl(shortUrlRepository,safeBrowsingService,rabbitTemplateMock,isReachableService)
+        
+        rabbitAdminMock.purgeQueue("isReachable", true)
+        messageBrokerTest.sendSafeBrowsing("myUrl","myHash")
+        assertTrue(isMessagePublishedInQueue(rabbitTemplateMock))
+    }
+
+    private fun isMessagePublishedInQueue(a: RabbitTemplate): Boolean {
+        //rabbitTemplateMock = RabbitTemplate()
+        val queueMessageCount = rabbitTemplateMock.execute {
+                it.queueDeclare(
+                        "isReachable",
+                        true,
+                        false, 
+                        false, 
+                        null
+                ).messageCount
+        }
+        val queuedMessage = rabbitTemplateMock
+                .receiveAndConvert(
+                        "isReachable"
+                ) as String
+
+        return queueMessageCount == 1 && queuedMessage.equals("myUrl myHash")
+}
+    
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
         given(redirectUseCase.redirectTo("idHash")).willReturn(Redirection("http://example.com/"))
         given(userAgentInfo.getBrowser("UrlAgentHeader")).willReturn("a")
         given(userAgentInfo.getOS("UrlAgentHeader")).willReturn("b")
+        given(shortUrlRepository.everythingChecked("idHash")).willReturn(true)
         given(shortUrlRepository.isSafe("idHash")).willReturn(true)
         given(shortUrlRepository.isReachable("idHash")).willReturn(true)
 
@@ -108,6 +163,55 @@ class UrlShortenerControllerTest {
             .andExpect(jsonPath("$.statusCode").value(404))
 
         verify(logClickUseCase, never()).logClick("idHash", ClickProperties(ip = "127.0.0.1"))
+    }
+
+
+    @Test
+    fun `redirectTo returns a not validated yet when the key exists but is not validated`() {
+        given(redirectUseCase.redirectTo("idHash")).willReturn(Redirection("http://example.com/"))
+        given(userAgentInfo.getBrowser("UrlAgentHeader")).willReturn("a")
+        given(userAgentInfo.getOS("UrlAgentHeader")).willReturn("b")
+        given(shortUrlRepository.everythingChecked("idHash")).willReturn(false)
+
+        mockMvc.perform(get("/{id}", "idHash").header("User-Agent","UrlAgentHeader"))
+            .andDo(print())
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.statusCode").value(400))
+
+        verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
+    }
+
+    @Test
+    fun `redirectTo returns a not safe when the key exists but is not safe`() {
+        given(redirectUseCase.redirectTo("idHash")).willReturn(Redirection("http://example.com/"))
+        given(userAgentInfo.getBrowser("UrlAgentHeader")).willReturn("a")
+        given(userAgentInfo.getOS("UrlAgentHeader")).willReturn("b")
+        given(shortUrlRepository.everythingChecked("idHash")).willReturn(true)
+        given(shortUrlRepository.isSafe("idHash")).willReturn(false)
+
+        mockMvc.perform(get("/{id}", "idHash").header("User-Agent","UrlAgentHeader"))
+            .andDo(print())
+            .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.statusCode").value(403))
+
+        verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
+    }
+
+     @Test
+    fun `redirectTo returns a not reachable when the key exists but is not reachable`() {
+        given(redirectUseCase.redirectTo("idHash")).willReturn(Redirection("http://example.com/"))
+        given(userAgentInfo.getBrowser("UrlAgentHeader")).willReturn("a")
+        given(userAgentInfo.getOS("UrlAgentHeader")).willReturn("b")
+        given(shortUrlRepository.everythingChecked("idHash")).willReturn(true)
+        given(shortUrlRepository.isSafe("idHash")).willReturn(true)
+        given(shortUrlRepository.isReachable("idHash")).willReturn(false)
+
+        mockMvc.perform(get("/{id}", "idHash").header("User-Agent","UrlAgentHeader"))
+            .andDo(print())
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.statusCode").value(400))
+
+        verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
     }
 
 
@@ -236,18 +340,5 @@ class UrlShortenerControllerTest {
             .andExpect(jsonPath("$.statusCode").value(400))
     }
 
-    
-    @Test
-    fun `test SafeBrowsing service`() {
-        assertEquals(true, safeBrowsingService.isSafe("https://example.com/"))
-        assertEquals(false, safeBrowsingService.isSafe("https://testsafebrowsing.appspot.com/s/phishing.html"))
-    }
-    @Test
-    fun `test Reachablilty service`() {
-        assertEquals(true, isReachableService.isReachable("http://unizar.es"))
-        assertEquals(false, isReachableService.isReachable("http://unizr.es"))
-    }
-
-    
 
 }
