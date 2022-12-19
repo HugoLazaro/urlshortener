@@ -22,6 +22,11 @@ import java.io.ByteArrayOutputStream
 
 /**
  * Implementation of the port [MessageBrokerService]
+ *
+ * @property shortUrlRepository
+ * @property safeBrowsingCheck
+ * @property template
+ * @property isReachableCheck
  */
 class MessageBrokerImpl (
     private val shortUrlRepository: ShortUrlRepositoryService,
@@ -85,9 +90,14 @@ class ValidatorServiceImpl : ValidatorService {
     }
 }
 class IsReachableServiceImpl : IsReachableService{
-    /** Returns the result of checking if the given [url] is reachable */
+    /**
+     * Returns the result of checking if the given [url] is reachable
+     * Source: https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
+     *
+     * @param url
+     * @return
+     */
     override fun isReachable(url: String): Boolean{
-        //https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
         try{
             val myurl = URL(url)
             val huc =  myurl.openConnection()  as HttpURLConnection
@@ -133,9 +143,14 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         }
     }
 
-    //https://testsafebrowsing.appspot.com/
-    //https://stackoverflow.com/questions/41861449/kotlin-dsl-for-creating-json-objects-without-creating-garbage
-    /** Returns the result of checking if the given [url] is safe */
+    /**
+     * Returns the result of checking if the given [url] is safe
+     * Source: https://stackoverflow.com/questions/41861449/kotlin-dsl-for-creating-json-objects-without-creating-garbage
+     * Source for testing: https://testsafebrowsing.appspot.com/
+     *
+     * @param url
+     * @return
+     */
     override fun isSafe(url: String): Boolean{
         var safe = false
         val restTemplate = RestTemplate()
@@ -162,9 +177,7 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         try{
             val entity: HttpEntity<JSONObject> = HttpEntity<JSONObject>(requestJson, headers)
             val response = restTemplate.postForObject(resourceUrl, entity, JSONObject::class.java)
-            //println(response.getHeaders())
             if (response!!.isEmpty()) {
-                //println("Pagina segura" + response.getBody())
                 safe = true
                 println("Pagina segura")
             }else{
@@ -183,7 +196,12 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
  * Implementation of the port [QRService].
  */
 class QRServiceImpl : QRService {
-
+    /**
+     * Given a [url] returns the QR code Byte Array
+     *
+     * @param url
+     * @return
+     */
     override fun getQR(url: String) : ByteArrayResource =
             ByteArrayOutputStream().let{
                 QRCode(url).render().writeImage(it)

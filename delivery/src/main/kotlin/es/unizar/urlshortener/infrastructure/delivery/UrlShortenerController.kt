@@ -85,7 +85,6 @@ data class ShortUrlInfo(
     val actions: Map<String, Any> = emptyMap()
 )
 
-
 /**
  * The implementation of the controller.
  *
@@ -101,10 +100,7 @@ class UrlShortenerControllerImpl(
     val userAgentInfo: UserAgentInfo,
     val showShortUrlInfoUseCase: ShowShortUrlInfoUseCase,
 ) : UrlShortenerController {
-    //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
-           
-            //val getBrowserAndOS = UserAgentInfoImpl()
-            //var y = request.getHeader("User-Agent")
+
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
@@ -112,19 +108,18 @@ class UrlShortenerControllerImpl(
             val b = userAgentInfo.getOS(request.getHeader("User-Agent"))
             logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = a,platform =b))
             val h = HttpHeaders()
-            println("\n\n Este es el id------------------------" + id)
             if(!shortUrlRepository.everythingChecked(id)) {
                 throw NotValidatedYetException(id)
             }
-            else if (!shortUrlRepository.isSafe(id)) { // 403 Forbidden
+            else if (!shortUrlRepository.isSafe(id)) { /** 403 Forbidden */
                 print("Excepcion no segura")
                 throw UrlNotSafeException(id)
-            } else if (!shortUrlRepository.isReachable(id)) { // 400 Bad Request y cabecera Retry-After
+            } else if (!shortUrlRepository.isReachable(id)) { /** 400 Bad Request y cabecera Retry-After */
                 throw UrlNotReachableException(id)
             } else if (false) {
                 throw TooManyRequestsException(id)
             }
-            else if (shortUrlRepository.hasSponsor(id)){ // La URI recortada existe, se puede hacer redireccion y tiene publicidad
+            else if (shortUrlRepository.hasSponsor(id)){ /** La URI recortada existe, se puede hacer redireccion y tiene publicidad */
                 h.location = URI.create(it.target)
                 ResponseEntity<Void>(h, HttpStatus.valueOf(200))
             }else{
@@ -145,12 +140,11 @@ class UrlShortenerControllerImpl(
             wantQR = data.wantQR
         ).let {
             try {
-                // sleep for one second
+                /** sleep for one second */
                 Thread.sleep(500)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
-            println("Comienza la comprobacion")
             if(!shortUrlRepository.everythingChecked(it.hash)){
                 throw NotValidatedYetException(data.url)
             }
@@ -191,15 +185,15 @@ class UrlShortenerControllerImpl(
     @GetMapping("/{hash}/qr")
     override fun generateQR(@PathVariable hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource> =
             getQRUseCase.generateQR(hash).let {
-                // Si la URI no es alcanzable o segura
+                /** URI not reachable or safe */
                 if (!shortUrlRepository.isReachable(hash)) {
                     throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotReachableException(it1.target) }!!
                 }
-                // Si la URI existe y se han enviado demasiadas peticiones
+                /** Too many requests send for a URI that exists */
                 else if (false) {
                     throw TooManyRequestsException(hash)
                 }
-                // Si la URI existe y no se puede utilizar ya que no es segura
+                /** URI exists but isn't safe */
                 else if (!shortUrlRepository.isSafe(hash)) {
                     throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotSafeException(it1.target) }!!
                 }
@@ -215,15 +209,15 @@ class UrlShortenerControllerImpl(
             h.set(CONTENT_TYPE, APPLICATION_JSON.toString())
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
 
-            // Si la URI no es alcanzable o segura
+            /** URI not reachable or safe */
             if (!it.properties.reachable!!) {
                 throw UrlNotReachableException(it.redirection.target)
             }
-            // Si la URI existe y se han enviado demasiadas peticiones
+            /** Too many requests send for a URI that exists */
             else if (false) {
                 throw TooManyRequestsException(it.hash)
             }
-            // Si la URI existe y no se puede utilizar ya que no es segura
+            /** URI exists but isn't safe */
             else if (!it.properties.safe!!) {
                 throw UrlNotSafeException(it.redirection.target)
             }

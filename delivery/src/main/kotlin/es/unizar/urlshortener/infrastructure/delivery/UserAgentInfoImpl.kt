@@ -8,13 +8,14 @@ interface UserAgentInfo{
     fun getBrowser(userAgentHeader: String): String
     fun getOS(userAgentHeader: String): String
 }
-//https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
+
 /**
  * Implementation of [UserAgentInfo]
  */
 class UserAgentInfoImpl : UserAgentInfo{
     /**
      * Given a [userAgentHeader] returns the browser
+     * Source: https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
      *
      * @param userAgentHeader
      * @return
