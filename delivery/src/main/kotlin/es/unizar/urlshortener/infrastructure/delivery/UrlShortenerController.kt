@@ -160,11 +160,12 @@ class UrlShortenerControllerImpl(
                 h.location = url
                 val lengthHash = it.hash.length
                 val apilink = url.toString().substring(0, url.toString().length - lengthHash)
+                val auxiliar = true
                 val response = ShortUrlInfo(
                     url = it.redirection.target,
                     properties = mapOf(
-                        "safe" to if (it.properties.safe != null) it.properties.safe as Any else true,
-                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else true,
+                        "safe" to if (it.properties.safe != null) it.properties.safe as Any else auxiliar,
+                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else auxiliar,
                         "country" to if (it.properties.country != null) it.properties.country as Any else "",
                         "created" to it.created,
                         "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",

@@ -17,6 +17,7 @@ interface CreateShortUrlUseCase {
 /**
  * Implementation of [CreateShortUrlUseCase].
  */
+@Suppress("unused")
 class CreateShortUrlUseCaseImpl(
         private val shortUrlRepository: ShortUrlRepositoryService,
         private val validatorService: ValidatorService,

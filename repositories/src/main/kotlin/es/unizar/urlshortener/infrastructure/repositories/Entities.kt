@@ -8,6 +8,7 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "click")
+@Suppress("unused")
 class ClickEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

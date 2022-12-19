@@ -71,8 +71,6 @@ class MessageBrokerImpl (
      * @param url
      * @param idHash
      */
-
-    /** Given an [url] and its [idHash], sends a message to the Broker  */
     override fun sendSafeBrowsing(url: String, idHash: String) {
         println(" [x] Sent test reachable and safe'$url'")
         this.template.convertAndSend("tests","doTests", "$url $idHash")
@@ -174,7 +172,7 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
         }
             
         println(requestJson)
-        try{
+        return try{
             val entity: HttpEntity<JSONObject> = HttpEntity<JSONObject>(requestJson, headers)
             val response = restTemplate.postForObject(resourceUrl, entity, JSONObject::class.java)
             if (response!!.isEmpty()) {
@@ -183,11 +181,11 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
             }else{
                 println("Pagina no segura")
             }
-            return safe
+            safe
         } catch (e: HttpClientErrorException ) {
             println("Exception when calling to safebrowsing:")
             println(e)
-            return false
+            false
         }
     } 
 }
@@ -213,7 +211,7 @@ class QRServiceImpl : QRService {
 /**
  * Implementation of the port [HashService].
  */
-@Suppress("UnstableApiUsage")
+//@Suppress("UnstableApiUsage")
 class HashServiceImpl : HashService {
     override fun hasUrl(url: String, customUrl: String) = if (customUrl == "") Hashing.murmur3_32_fixed().hashString(url, StandardCharsets.UTF_8).toString() else customUrl
 }
