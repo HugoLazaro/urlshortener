@@ -38,7 +38,7 @@ class ShortUrlRepositoryServiceImpl(
      * @param id
      * @return
      */
-    override fun hasSponsor(id: String): Boolean = shortUrlEntityRepository.findByHash(id)?.sponsor != ""
+    override fun hasSponsor(id: String): Boolean = shortUrlEntityRepository.findByHash(id)?.sponsor == "true"
 
     /**
      * Given a hash [id] and a [result] saves the result in the 'safe' field
