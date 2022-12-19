@@ -55,6 +55,9 @@ class FunctionalitiesTest {
     @Autowired
     private lateinit var safeBrowsingService:SafeBrowsingServiceImpl
 
+    @Autowired
+    private lateinit var hashService: HashServiceImpl
+
     @MockBean
     private lateinit var redirectUseCase: RedirectUseCase
 
@@ -72,9 +75,6 @@ class FunctionalitiesTest {
     
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
-
-    @MockBean
-    private lateinit var hashService: HashServiceImpl
 
     @Test
     fun `test UserAgentInfo service for Windows and Firefox`() {
