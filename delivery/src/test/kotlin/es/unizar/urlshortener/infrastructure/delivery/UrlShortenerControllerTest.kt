@@ -98,7 +98,8 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
     
-    
+    @MockBean
+    private lateinit var hashService: HashServiceImpl
 
     fun testSend() {
        /* rabbitTemplateMock = Mockito.mock(RabbitTemplate)

@@ -41,7 +41,8 @@ import org.mockito.Mockito
     classes = [
         UserAgentInfoImpl::class,
         IsReachableServiceImpl::class,
-        SafeBrowsingServiceImpl::class]
+        SafeBrowsingServiceImpl::class,
+        HashServiceImpl::class]
 )
 class FunctionalitiesTest {
 
@@ -72,6 +73,9 @@ class FunctionalitiesTest {
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
 
+    @MockBean
+    private lateinit var hashService: HashServiceImpl
+
     @Test
     fun `test UserAgentInfo service for Windows and Firefox`() {
         val x =   UserAgentInfoImpl()
@@ -97,6 +101,11 @@ class FunctionalitiesTest {
         assertEquals(false, isReachableService.isReachable("http://unizr.es"))
     }
 
+    @Test
+    fun `test customUrl service`() {
+        assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
+        assertEquals("6b30f676", hashService.hasUrl("https://www.example.com", ""))
+    }
     
 
 }

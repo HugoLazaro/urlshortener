@@ -31,9 +31,8 @@ class CreateShortUrlUseCaseImpl(
             throw InvalidUrlException(url)
         } else run {
 
-            val id: String = if (customUrl == "")
-                hashService.hasUrl(url)
-            else customUrl
+            val id: String = hashService.hasUrl(url, customUrl)
+            print(id)
 
             val isHashUsedCoroutine = async {
                 shortUrlRepository.isHashUsed(id)
