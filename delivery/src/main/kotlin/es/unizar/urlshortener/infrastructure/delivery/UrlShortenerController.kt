@@ -228,6 +228,13 @@ class UrlShortenerControllerImpl(
                 throw UrlNotSafeException(it.redirection.target)
             }
             val clicks = clickRepositoryService.getInfo(id)
+            val browsers = mutableListOf<String>()
+            val platforms = mutableListOf<String>()
+            for (click in clicks) {
+                click.properties.browser?.let { it1 -> browsers.add(it1) }
+                click.properties.platform?.let { it1 -> platforms.add(it1) }
+            }
+
             val lengthHash = it.hash.length
             val apilink = url.toString().substring(0, url.toString().length - lengthHash)
             val response = ShortUrlInfo(
@@ -241,8 +248,8 @@ class UrlShortenerControllerImpl(
                     "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
                     "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
                     "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else "",
-                    "browsers" to clicks.map { click -> click.properties.browser },
-                    "platforms" to clicks.map { click -> click.properties.platform }
+                    "browsers" to browsers.toSet().toList(),
+                    "platforms" to platforms.toSet().toList()
                 ),
                 actions = mapOf<String, Any>(
                     "redirect" to "$url",

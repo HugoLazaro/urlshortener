@@ -17,9 +17,9 @@ class ClickRepositoryServiceImpl(
         val clicks = clickEntityRepository.findAll()
         val clickList = mutableListOf<Click>()
         for (click in clicks) {
-            //if (click.hash == id){
+            if (click.hash == id){
                 clickList.add(click.toDomain())
-            //}
+            }
         }
         return clickList
     }
