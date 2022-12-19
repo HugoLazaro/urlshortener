@@ -112,7 +112,8 @@ class UrlShortenerControllerImpl(
             val b = userAgentInfo.getOS(request.getHeader("User-Agent"))
             logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = a,platform =b))
             val h = HttpHeaders()
-            if(!shortUrlRepository.everythingChecked(id)){
+            println("\n\n Este es el id------------------------" + id)
+            if(!shortUrlRepository.everythingChecked(id)) {
                 throw NotValidatedYetException(id)
             }
             else if (!shortUrlRepository.isSafe(id)) { // 403 Forbidden

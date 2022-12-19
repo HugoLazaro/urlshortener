@@ -53,7 +53,6 @@ class CreateShortUrlUseCaseImpl(
                     )
                 )
                 msgBroker.sendSafeBrowsing(url,id)
-                //msgBroker.sendSafeBrowsing("isReachable", url,id)
                 shortUrlRepository.save(su)
             }
         }

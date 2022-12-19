@@ -55,7 +55,7 @@ class UrlShortenerControllerTest {
 
     @Autowired
     private lateinit var subject:  MessageBrokerImpl 
-    
+
     @Autowired
     @MockBean
     private lateinit var rabbitTemplateMock: RabbitTemplate
@@ -194,6 +194,7 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.statusCode").value(403))
+            .andExpect(jsonPath("$.message").value("[idHash] is not a safe Url"))
 
         verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
     }
@@ -211,6 +212,7 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
+            .andExpect(jsonPath("$.message").value("[idHash] is not a reachable Url"))
 
         verify(logClickUseCase).logClick("idHash", ClickProperties(ip = "127.0.0.1", browser = "a",platform = "b"))
     }
@@ -240,7 +242,8 @@ class UrlShortenerControllerTest {
              .andDo(print())
              .andExpect(status().isCreated)
              .andExpect(redirectedUrl("http://localhost/f684a3c4"))
-             .andExpect(jsonPath("$.url").value("http://localhost/f684a3c4"))
+             .andExpect(jsonPath("$.url").value("http://example.com/"))
+             .andExpect(jsonPath("$.actions.redirect").value("http://localhost/f684a3c4"))
      }
 
     @Test
@@ -266,10 +269,11 @@ class UrlShortenerControllerTest {
              .andDo(print())
              .andExpect(status().isForbidden)
              .andExpect(jsonPath("$.statusCode").value(403))
+             .andExpect(jsonPath("$.message").value("[http://example.com/] is not a safe Url"))
      }
 
      @Test
-     fun `creates returns not safe error if it can compute a hash but is not safe`() {
+     fun `creates returns not reachable error if it can compute a hash but is not reachable`() {
         given(
             createShortUrlUseCase.create(
                 url = "http://example.com/",
@@ -292,6 +296,7 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
+            .andExpect(jsonPath("$.message").value("[http://example.com/] is not a reachable Url",))
      }
 
     @Test
@@ -339,6 +344,7 @@ class UrlShortenerControllerTest {
             .andDo(print())
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.statusCode").value(400))
+            .andExpect(jsonPath("$.message").value("[ftp://example.com/] does not follow a supported schema"))
     }
 
 

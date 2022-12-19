@@ -1,13 +1,24 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-
+/**
+ * Get the information of a given User-Agent header
+ *
+ */
 interface UserAgentInfo{
     fun getBrowser(userAgentHeader: String): String
     fun getOS(userAgentHeader: String): String
 }
 //https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
+/**
+ * Implementation of [UserAgentInfo]
+ */
 class UserAgentInfoImpl : UserAgentInfo{
-
+    /**
+     * Given a [userAgentHeader] returns the browser
+     *
+     * @param userAgentHeader
+     * @return
+     */
     override fun getBrowser(userAgentHeader: String) : String{
         val uaLowCase = userAgentHeader.lowercase()
         var browser = ""
@@ -44,6 +55,12 @@ class UserAgentInfoImpl : UserAgentInfo{
             return browser
     }
 
+    /**
+     * Given a [userAgentHeader] returns the platform
+     *
+     * @param userAgentHeader
+     * @return
+     */
     override fun getOS(userAgentHeader: String) : String{
         val uaLowCase = userAgentHeader.lowercase()
         val os: String = if (uaLowCase.contains("windows")) {

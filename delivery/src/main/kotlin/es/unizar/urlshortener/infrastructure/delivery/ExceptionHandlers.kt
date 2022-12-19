@@ -32,7 +32,7 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ResponseBody
     @ExceptionHandler(value = [UrlNotReachableException::class])
-    protected fun urlNotReachable(ex: UrlNotReachableException) = ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+    protected fun urlNotReachable(ex: UrlNotReachableException) = ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .header("Retry-after", "10000")
         .body(ErrorMessage(HttpStatus.BAD_REQUEST.value(), ex.message))
 

@@ -20,7 +20,9 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType.IMAGE_PNG_VALUE
 import java.io.ByteArrayOutputStream
 
-
+/**
+ * Implementation of the port [MessageBrokerService]
+ */
 class MessageBrokerImpl (
     private val shortUrlRepository: ShortUrlRepositoryService,
     private val safeBrowsingCheck: SafeBrowsingServiceImpl,
@@ -28,6 +30,11 @@ class MessageBrokerImpl (
     private val isReachableCheck: IsReachableServiceImpl
 ) :MessageBrokerService{
 
+    /**
+     * Receives the String [url] from the RabbitMQ 'safeBrowsing' Queue
+     *
+     * @param url
+     */
     @RabbitListener(queues = ["safeBrowsing"])
     @RabbitHandler
     override fun receiveSafeBrowsingRequest(url: String) {
@@ -35,26 +42,32 @@ class MessageBrokerImpl (
         val hash = url.split(" ")[1]
         println(" [x] Received safe broswing'$realUrl'")
         val result = safeBrowsingCheck.isSafe(realUrl)
-        //if(safeBrowsingCheck.isSafe(realUrl)){
-          //  result = true
-            shortUrlRepository.updateSafeInfo(hash,result)
-        //}
+        shortUrlRepository.updateSafeInfo(hash,result)
     }
-   
+
+    /**
+     * Receives the String [url] from the RabbitMQ 'isReachable' Queue
+     *
+     * @param url
+     */
     @RabbitListener(queues = ["isReachable"])
     @RabbitHandler
     override fun receiveCheckReachable(url: String) {
         val realUrl =  url.split(" ")[0]
         val hash = url.split(" ")[1]
-       println(" [x] Received reachable'$realUrl'")
-       val result = isReachableCheck.isReachable(realUrl)
-        //if(isReachableCheck.isReachable(realUrl)){
-          //  result = true
-             shortUrlRepository.updateReachableInfo(hash,result)
-        //}
+        println(" [x] Received reachable'$realUrl'")
+        val result = isReachableCheck.isReachable(realUrl)
+        shortUrlRepository.updateReachableInfo(hash,result)
     }
 
+    /**
+     * Given an [url] and its [idHash], sends a message to the Broker
+     *
+     * @param url
+     * @param idHash
+     */
 
+    /** Given an [url] and its [idHash], sends a message to the Broker  */
     override fun sendSafeBrowsing(url: String, idHash: String) {
         println(" [x] Sent test reachable and safe'$url'")
         this.template.convertAndSend("tests","doTests", "$url $idHash")
@@ -72,6 +85,7 @@ class ValidatorServiceImpl : ValidatorService {
     }
 }
 class IsReachableServiceImpl : IsReachableService{
+    /** Returns the result of checking if the given [url] is reachable */
     override fun isReachable(url: String): Boolean{
         //https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
         try{
@@ -121,6 +135,7 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
 
     //https://testsafebrowsing.appspot.com/
     //https://stackoverflow.com/questions/41861449/kotlin-dsl-for-creating-json-objects-without-creating-garbage
+    /** Returns the result of checking if the given [url] is safe */
     override fun isSafe(url: String): Boolean{
         var safe = false
         val restTemplate = RestTemplate()
@@ -167,7 +182,6 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
 /**
  * Implementation of the port [QRService].
  */
-
 class QRServiceImpl : QRService {
 
     override fun getQR(url: String) : ByteArrayResource =

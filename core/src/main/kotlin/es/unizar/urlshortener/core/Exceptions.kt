@@ -4,9 +4,9 @@ class InvalidUrlException(val url: String) : Exception("[$url] does not follow a
 
 class RedirectionNotFound(key: String) : Exception("[$key] is not known")
 
-class UrlNotSafeException(val url: String) : Exception("[$url] is a not safe Url")
+class UrlNotSafeException(val url: String) : Exception("[$url] is not a safe Url")
 
-class UrlNotReachableException(val url: String) : Exception("[$url] is a not reachable Url")
+class UrlNotReachableException(val url: String) : Exception("[$url] is not a reachable Url")
 
 class NotValidatedYetException(val url: String) : Exception("error: Uri de destino no validada todavia")
 
