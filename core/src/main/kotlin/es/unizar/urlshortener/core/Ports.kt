@@ -7,6 +7,8 @@ import org.springframework.core.io.ByteArrayResource
  */
 interface ClickRepositoryService {
     fun save(cl: Click): Click
+
+    fun getInfo(id: String): List<Click>
 }
 
 /**

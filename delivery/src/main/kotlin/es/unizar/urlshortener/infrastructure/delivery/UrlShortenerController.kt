@@ -99,6 +99,7 @@ class UrlShortenerControllerImpl(
     val getQRUseCase: GetQRUseCase,
     val userAgentInfo: UserAgentInfo,
     val showShortUrlInfoUseCase: ShowShortUrlInfoUseCase,
+    val clickRepositoryService: ClickRepositoryService
 ) : UrlShortenerController {
 
     @GetMapping("/{id:(?!api|index).*}")
@@ -108,6 +109,8 @@ class UrlShortenerControllerImpl(
             val b = userAgentInfo.getOS(request.getHeader("User-Agent"))
             logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = a,platform =b))
             val h = HttpHeaders()
+            h.set("Browser", a)
+            h.set("OS", b)
             if(!shortUrlRepository.everythingChecked(id)) {
                 throw NotValidatedYetException(id)
             }
@@ -210,6 +213,8 @@ class UrlShortenerControllerImpl(
             h.set(CONTENT_TYPE, APPLICATION_JSON.toString())
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
 
+
+
             /** URI not reachable or safe */
             if (!it.properties.reachable!!) {
                 throw UrlNotReachableException(it.redirection.target)
@@ -222,6 +227,7 @@ class UrlShortenerControllerImpl(
             else if (!it.properties.safe!!) {
                 throw UrlNotSafeException(it.redirection.target)
             }
+            val clicks = clickRepositoryService.getInfo(id)
             val lengthHash = it.hash.length
             val apilink = url.toString().substring(0, url.toString().length - lengthHash)
             val response = ShortUrlInfo(
@@ -234,7 +240,9 @@ class UrlShortenerControllerImpl(
                     "created" to it.created,
                     "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
                     "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
-                    "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else ""
+                    "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else "",
+                    "browsers" to clicks.map { click -> click.properties.browser },
+                    "platforms" to clicks.map { click -> click.properties.platform }
                 ),
                 actions = mapOf<String, Any>(
                     "redirect" to "$url",
