@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 
@@ -66,17 +67,23 @@ interface UrlShortenerController {
 /**
  * Data required to create a short url.
  */
+@Schema(description = "Data received from the users request.")
 data class ShortUrlDataIn(
+    @Schema(description = "URL to be shortened.")
     val url: String,
     val sponsor: String? = null,
+    @Schema(description = "Value of the custom URL that the user wants. Empty if the user doesn't want a custom URL.")
     val customUrl: String,
+    @Schema(description = "Indicates if the user wants a qr code or not.")
     val wantQR: Boolean
 )
 
 /**
  * Data returned after the creation of a short url.
  */
+ @Schema(description = "Data sent as a response to the users request of creating a URL")
 data class ShortUrlDataOut(
+    
     val url: URI? = null,
     val properties: Map<String, Any> = emptyMap()
 )
@@ -84,9 +91,13 @@ data class ShortUrlDataOut(
 /**
  * Data returned to /api/link/{id} request.
  */
+@Schema(description = "Data sent as a response to the request coming from different endpoints (/api/link and /api/link{id})")
 data class ShortUrlInfo(
+    @Schema(description = "Url associated to the response")
     val url: String = "",
+    @Schema(description = "Properties that the shortened URL has: Safe, reachble, sponsor...")
     val properties: Map<String, Any> = emptyMap(),
+    @Schema(description = "Actions that can be done with the shortened url")
     val actions: Map<String, Any> = emptyMap()
 )
 
