@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
+import io.swagger.v3.oas.annotations.Operation
+
+
 
 /**
  * The specification of the controller.
@@ -102,6 +105,8 @@ class UrlShortenerControllerImpl(
     val clickRepositoryService: ClickRepositoryService
 ) : UrlShortenerController {
 
+   @Operation(summary="Redirect (if possible to a web page)", 
+                description = "Given a certain hash id, redirects (if possible) to the web page associated to that hash id.")
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
