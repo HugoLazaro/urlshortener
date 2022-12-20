@@ -73,9 +73,7 @@ data class ShortUrlDataIn(
     val url: String,
     val sponsor: String? = null,
     @Schema(description = "Value of the custom URL that the user wants. Empty if the user doesn't want a custom URL.")
-    val customUrl: String,
-    @Schema(description = "Indicates if the user wants a qr code or not.")
-    val wantQR: Boolean
+    val customUrl: String
 )
 
 /**
@@ -166,8 +164,7 @@ class UrlShortenerControllerImpl(
                 ip = request.remoteAddr,
                 sponsor = data.sponsor
             ),
-            customUrl = data.customUrl,
-            wantQR = data.wantQR
+            customUrl = data.customUrl
         ).let {
             try {
                 /** sleep for one second */

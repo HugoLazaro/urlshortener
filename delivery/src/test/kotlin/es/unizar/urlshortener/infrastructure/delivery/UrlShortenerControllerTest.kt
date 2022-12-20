@@ -224,8 +224,7 @@ class UrlShortenerControllerTest {
              createShortUrlUseCase.create(
                  url = "http://example.com/",
                  data = ShortUrlProperties(ip = "127.0.0.1"),
-                 customUrl = "",
-                 wantQR = false
+                 customUrl = ""
              )
          ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
          given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
@@ -236,7 +235,6 @@ class UrlShortenerControllerTest {
              post("/api/link")
                  .param("url", "http://example.com/")
                  .param("customUrl", "")
-                 .param("wantQR","false")
                  .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
          )
              .andDo(print())
@@ -252,8 +250,7 @@ class UrlShortenerControllerTest {
              createShortUrlUseCase.create(
                  url = "http://example.com/",
                  data = ShortUrlProperties(ip = "127.0.0.1"),
-                 customUrl = "",
-                 wantQR = false
+                 customUrl = ""
              )
          ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
         given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
@@ -263,7 +260,6 @@ class UrlShortenerControllerTest {
              post("/api/link")
                  .param("url", "http://example.com/")
                  .param("customUrl", "")
-                 .param("wantQR","false")
                  .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
          )
              .andDo(print())
@@ -278,8 +274,7 @@ class UrlShortenerControllerTest {
             createShortUrlUseCase.create(
                 url = "http://example.com/",
                 data = ShortUrlProperties(ip = "127.0.0.1"),
-                customUrl = "",
-                wantQR = false
+                customUrl = ""
             )
         ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
         given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(true)
@@ -290,7 +285,6 @@ class UrlShortenerControllerTest {
             post("/api/link")
                 .param("url", "http://example.com/")
                 .param("customUrl", "")
-                .param("wantQR","false")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         )
             .andDo(print())
@@ -305,8 +299,7 @@ class UrlShortenerControllerTest {
              createShortUrlUseCase.create(
                  url = "http://example.com/",
                  data = ShortUrlProperties(ip = "127.0.0.1"),
-                 customUrl = "",
-                 wantQR = false
+                 customUrl = ""
              )
          ).willReturn(ShortUrl("f684a3c4", Redirection("http://example.com/")))
         given(shortUrlRepository.everythingChecked("f684a3c4")).willReturn(false)
@@ -315,7 +308,6 @@ class UrlShortenerControllerTest {
              post("/api/link")
                  .param("url", "http://example.com/")
                  .param("customUrl", "")
-                 .param("wantQR","false")
                  .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
          )
              .andDo(print())
@@ -329,8 +321,7 @@ class UrlShortenerControllerTest {
              createShortUrlUseCase.create(
                  url = "ftp://example.com/",
                  data = ShortUrlProperties(ip = "127.0.0.1"),
-                 customUrl = "",
-                 wantQR = false
+                 customUrl = ""
              )
          ).willAnswer { throw InvalidUrlException("ftp://example.com/") }
 
@@ -338,7 +329,6 @@ class UrlShortenerControllerTest {
              post("/api/link")
                 .param("url", "ftp://example.com/")
                 .param("customUrl", "")
-                .param("wantQR","false")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
          )
             .andDo(print())

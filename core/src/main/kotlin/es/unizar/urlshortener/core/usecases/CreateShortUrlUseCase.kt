@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
  * **Note**: This is an example of functionality.
  */
 interface CreateShortUrlUseCase {
-    fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean=false): ShortUrl
+    fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl
 }
 
 /**
@@ -27,7 +27,7 @@ class CreateShortUrlUseCaseImpl(
         private val hashService: HashService,
         private val msgBroker: MessageBrokerService
 ) : CreateShortUrlUseCase {
-    override fun create(url: String, data: ShortUrlProperties, customUrl: String, wantQR: Boolean): ShortUrl = runBlocking {
+    override fun create(url: String, data: ShortUrlProperties, customUrl: String): ShortUrl = runBlocking {
         if (!validatorService.isValid(url)) {
             throw InvalidUrlException(url)
         } else run {
