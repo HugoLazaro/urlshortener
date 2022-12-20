@@ -17,7 +17,7 @@ class ClickRepositoryServiceImpl(
         val clicks = clickEntityRepository.findAll()
         val clickList = mutableListOf<Click>()
         for (click in clicks) {
-            if (click.hash == id){
+            if (click.hash == id) {
                 clickList.add(click.toDomain())
             }
         }
@@ -77,7 +77,6 @@ class ShortUrlRepositoryServiceImpl(
         newInfoUrl?.properties?.reachable = result
         println("--------Añadida alcanzabilidad----------\n$newInfoUrl")
         if (newInfoUrl != null)shortUrlEntityRepository.save((newInfoUrl).toEntity()).toDomain()
-        
     }
 
     /**
@@ -86,9 +85,9 @@ class ShortUrlRepositoryServiceImpl(
      * @param id
      * @return
      */
-    override fun isSafe(id: String): Boolean{
+    override fun isSafe(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
-        println("\n\n"+infoUrl)
+        println("\n\n" + infoUrl)
         return infoUrl?.properties?.safe == true
     }
 
@@ -98,7 +97,7 @@ class ShortUrlRepositoryServiceImpl(
      * @param id
      * @return
      */
-    override fun isReachable(id: String): Boolean{
+    override fun isReachable(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
         return infoUrl?.properties?.reachable == true
     }
@@ -110,11 +109,8 @@ class ShortUrlRepositoryServiceImpl(
      * @param id
      * @return
      */
-     override fun everythingChecked(id: String): Boolean{
+    override fun everythingChecked(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
         return infoUrl?.properties?.safe != null && infoUrl.properties.reachable != null
     }
 }
-
-
-

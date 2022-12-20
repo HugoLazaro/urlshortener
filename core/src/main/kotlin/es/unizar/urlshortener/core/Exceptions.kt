@@ -16,4 +16,4 @@ class QRException(val hash: String) : Exception("QR [$hash] doesn't exist")
 
 class ShowShortUrlInfoException(val id: String) : Exception("Short Url with hash [$id] doesn't exist")
 
-class TooManyRequestsException(val id:String) : Exception("Too many requests to the Short Url with hash [$id]")
+class TooManyRequestsException(val id: String) : Exception("Too many requests to the Short Url with hash [$id]")

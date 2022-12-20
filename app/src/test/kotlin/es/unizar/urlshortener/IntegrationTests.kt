@@ -11,13 +11,15 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.jdbc.JdbcTestUtils
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
-
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class HttpRequestTest {
@@ -55,7 +57,7 @@ class HttpRequestTest {
     /*@Test
     fun `redirectTo returns a redirect when the key exists`() {
         val target = shortUrl("http://example.com/").headers.location
-        println("\n\n---------------------------------------El location es:\n\n"+shortUrl("http://example.com/").headers.location)
+        println("\n\nEl location es:\n\n"+shortUrl("http://example.com/").headers.location)
         require(target != null)
         val sql = "SELECT * FROM shorturl"
         val resultList = jdbcTemplate.queryForList(sql, ShortUrl::class.java)
@@ -90,7 +92,6 @@ class HttpRequestTest {
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "shorturl")).isEqualTo(1)
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
     }*/
-    
 
     @Test
     fun `creates returns bad request if it can't compute a hash`() {
@@ -102,7 +103,8 @@ class HttpRequestTest {
 
         val response = restTemplate.postForEntity(
             "http://localhost:$port/api/link",
-            HttpEntity(data, headers), ShortUrlDataOut::class.java
+            HttpEntity(data, headers),
+            ShortUrlDataOut::class.java
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)

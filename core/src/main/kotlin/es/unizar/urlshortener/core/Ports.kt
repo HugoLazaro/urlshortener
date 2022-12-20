@@ -45,7 +45,8 @@ interface SafeBrowsingService {
 }
 
 /**
- * [IsReachableService] is the port to the service that validates if an url is reachable in order for it to be shortened.
+ * [IsReachableService] is the port to the service that validates
+ * if an url is reachable in order for it to be shortened.
  *
  * **Note**: It is a design decision to create this port. It could be part of the core .
  */
@@ -59,7 +60,7 @@ interface IsReachableService {
  * **Note**: It is a design decision to create this port. It could be part of the core .
  */
 interface QRService {
-    fun getQR(url: String) : ByteArrayResource
+    fun getQR(url: String): ByteArrayResource
 }
 
 /**
@@ -68,7 +69,7 @@ interface QRService {
  * **Note**: It is a design decision to create this port. It could be part of the core .
  */
 interface HashService {
-    fun hasUrl(url: String, customUrl:String): String
+    fun hasUrl(url: String, customUrl: String): String
 }
 
 /**
@@ -79,6 +80,5 @@ interface HashService {
 interface MessageBrokerService {
     fun receiveSafeBrowsingRequest(url: String)
     fun receiveCheckReachable(url: String)
-    fun sendSafeBrowsing(url: String, idHash:String)
+    fun sendSafeBrowsing(url: String, idHash: String)
 }
-

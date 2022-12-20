@@ -1,14 +1,23 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
-import es.unizar.urlshortener.core.usecases.GetQRUseCase
-import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
 import com.google.common.net.HttpHeaders.CONTENT_TYPE
 import es.unizar.urlshortener.core.ClickProperties
+import es.unizar.urlshortener.core.ClickRepositoryService
+import es.unizar.urlshortener.core.NotValidatedYetException
 import es.unizar.urlshortener.core.ShortUrlProperties
+import es.unizar.urlshortener.core.ShortUrlRepositoryService
+import es.unizar.urlshortener.core.TooManyRequestsException
+import es.unizar.urlshortener.core.UrlNotReachableException
+import es.unizar.urlshortener.core.UrlNotSafeException
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
+import es.unizar.urlshortener.core.usecases.GetQRUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
-import es.unizar.urlshortener.core.*
+import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.apache.http.entity.ContentType.APPLICATION_JSON
 import org.apache.http.entity.ContentType.IMAGE_PNG
 import org.springframework.core.io.ByteArrayResource
@@ -23,12 +32,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 
-
+private const val CODE_200: Int = 200
+private const val CODE_500: Long = 500
 
 /**
  * The specification of the controller.
@@ -54,14 +60,14 @@ interface UrlShortenerController {
      *
      * **Note**: Delivery of use case [GetQRUseCase].
      */
-    fun generateQR(hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource>
+    fun generateQR(hash: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource>
 
     /**
      * Shows relevant information about a short url identified by its [id].
      *
      * **Note**: Delivery of use case [ShowShortUrlInfoUseCase].
      */
-    fun showShortUrlInfo(id: String, request: HttpServletRequest) : ResponseEntity<ShortUrlInfo>
+    fun showShortUrlInfo(id: String, request: HttpServletRequest): ResponseEntity<ShortUrlInfo>
 }
 
 /**
@@ -79,9 +85,9 @@ data class ShortUrlDataIn(
 /**
  * Data returned after the creation of a short url.
  */
- @Schema(description = "Data sent as a response to the users request of creating a URL")
+@Schema(description = "Data sent as a response to the users request of creating a URL")
 data class ShortUrlDataOut(
-    
+
     val url: URI? = null,
     val properties: Map<String, Any> = emptyMap()
 )
@@ -89,7 +95,9 @@ data class ShortUrlDataOut(
 /**
  * Data returned to /api/link/{id} request.
  */
-@Schema(description = "Data sent as a response to the request coming from different endpoints (/api/link and /api/link{id})")
+@Schema(
+    description = "Data sent as a response to the request coming from different endpoints (/api/link and /api/link{id})"
+)
 data class ShortUrlInfo(
     @Schema(description = "Url associated to the response")
     val url: String = "",
@@ -116,51 +124,57 @@ class UrlShortenerControllerImpl(
     val clickRepositoryService: ClickRepositoryService
 ) : UrlShortenerController {
 
-    @Operation(summary="Redirect (if possible to a web page)", 
-                description = "Given a certain hash id, redirects (if possible) to the web page associated to that hash id.")
+    @Operation(
+        summary = "Redirect (if possible to a web page)",
+        description = "Given a certain hash id, redirects (if possible) to the web page associated to that hash id."
+    )
     @ApiResponses(
-      value = [
-          ApiResponse(responseCode = "200", description = "Redirection completed succesfully"),
-          ApiResponse(responseCode = "400", description = "Redirection not available because the url si not reachable"),
-          ApiResponse(responseCode = "403", description = "Redirection forbidden because the url si not safe"),
-      ]
+        value = [
+            ApiResponse(responseCode = "200", description = "Redirection completed succesfully"),
+            ApiResponse(
+                responseCode = "400",
+                description = "Redirection not available because the url si not reachable"
+            ),
+            ApiResponse(responseCode = "403", description = "Redirection forbidden because the url si not safe"),
+        ]
     )
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
             val a = userAgentInfo.getBrowser(request.getHeader("User-Agent"))
             val b = userAgentInfo.getOS(request.getHeader("User-Agent"))
-            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr,browser = a,platform =b))
+            logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr, browser = a, platform = b))
             val h = HttpHeaders()
             h.set("Browser", a)
             h.set("OS", b)
-            if(!shortUrlRepository.everythingChecked(id)) {
+            if (!shortUrlRepository.everythingChecked(id)) {
                 throw NotValidatedYetException(id)
-            }
-            else if (!shortUrlRepository.isSafe(id)) { /** 403 Forbidden */
+            } else if (!shortUrlRepository.isSafe(id)) { /** 403 Forbidden */
                 print("Excepcion no segura")
                 throw UrlNotSafeException(id)
             } else if (!shortUrlRepository.isReachable(id)) { /** 400 Bad Request y cabecera Retry-After */
                 throw UrlNotReachableException(id)
             } else if (false) {
                 throw TooManyRequestsException(id)
-            }
-            else if (shortUrlRepository.hasSponsor(id)){ /** La URI recortada existe, se puede hacer redireccion y tiene publicidad */
+            } else if (shortUrlRepository.hasSponsor(id)) {
+                /** La URI recortada existe, se puede hacer redireccion y tiene publicidad */
                 h.location = URI.create(it.target)
-                ResponseEntity<Void>(h, HttpStatus.valueOf(200))
-            }else{
+                ResponseEntity<Void>(h, HttpStatus.valueOf(CODE_200))
+            } else {
                 h.location = URI.create(it.target)
-                ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))   
+                ResponseEntity<Void>(h, HttpStatus.valueOf(it.mode))
             }
         }
 
-    @Operation(summary="Create a shortened URL", 
-                description = "Given a certain url, returns a shortened url or an error if it's not safe or reachable.")
+    @Operation(
+        summary = "Create a shortened URL",
+        description = "Given a certain url, returns a shortened url or an error if it's not safe or reachable."
+    )
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         createShortUrlUseCase.create(
             url = data.url,
-            data = ShortUrlProperties (
+            data = ShortUrlProperties(
                 ip = request.remoteAddr,
                 sponsor = data.sponsor
             ),
@@ -168,14 +182,13 @@ class UrlShortenerControllerImpl(
         ).let {
             try {
                 /** sleep for one second */
-                Thread.sleep(500)
+                Thread.sleep(CODE_500)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
-            if(!shortUrlRepository.everythingChecked(it.hash)){
+            if (!shortUrlRepository.everythingChecked(it.hash)) {
                 throw NotValidatedYetException(data.url)
-            }
-            else if (!shortUrlRepository.isSafe(it.hash)) { /////////////////////!!!!!!!!!!!!!Devolver 400 no 403
+            } else if (!shortUrlRepository.isSafe(it.hash)) { // ///////////////////!!!!!!!!!!!!!Devolver 400 no 403
                 print("Excepcion no segura: -----> " + it.hash)
                 throw UrlNotSafeException(data.url)
             } else if (!shortUrlRepository.isReachable(it.hash)) {
@@ -192,7 +205,11 @@ class UrlShortenerControllerImpl(
                     url = it.redirection.target,
                     properties = mapOf(
                         "safe" to if (it.properties.safe != null) it.properties.safe as Any else auxiliar,
-                        "reachable" to if (it.properties.reachable != null) it.properties.reachable as Any else auxiliar,
+                        "reachable" to if (it.properties.reachable != null) {
+                            it.properties.reachable as Any
+                        } else {
+                            auxiliar
+                        },
                         "country" to if (it.properties.country != null) it.properties.country as Any else "",
                         "created" to it.created,
                         "owner" to if (it.properties.owner != null) it.properties.owner as Any else "",
@@ -207,40 +224,47 @@ class UrlShortenerControllerImpl(
                 )
                 ResponseEntity<ShortUrlInfo>(response, h, HttpStatus.CREATED)
             }
-            
         }
-    @Operation(summary="Return the qr for a given hash", 
-                description = "Given a certain hash id, returns the qr code (if the code exists).")
-    @GetMapping("/{hash}/qr")
-    override fun generateQR(@PathVariable hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource> =
-            getQRUseCase.generateQR(hash).let {
-                /** URI not reachable or safe */
-                if (!shortUrlRepository.isReachable(hash)) {
-                    throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotReachableException(it1.target) }!!
-                }
-                /** Too many requests send for a URI that exists */
-                else if (false) {
-                    throw TooManyRequestsException(hash)
-                }
-                /** URI exists but isn't safe */
-                else if (!shortUrlRepository.isSafe(hash)) {
-                    throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotSafeException(it1.target) }!!
-                }
-                val h = HttpHeaders()
-                h.set(CONTENT_TYPE, IMAGE_PNG.toString())
-                ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
-            }
 
-    @Operation(summary="Return info for the given hash", 
-                description = "Given a certain hash id, returns the information of the url associated to the hash.")
+    @Operation(
+        summary = "Return the qr for a given hash",
+        description = "Given a certain hash id, returns the qr code (if the code exists)."
+    )
+    @GetMapping("/{hash}/qr")
+    override fun generateQR(@PathVariable hash: String, request: HttpServletRequest):
+        ResponseEntity<ByteArrayResource> =
+        getQRUseCase.generateQR(hash).let {
+            /** URI not reachable or safe */
+            if (!shortUrlRepository.isReachable(hash)) {
+                throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 ->
+                    UrlNotReachableException(
+                        it1.target
+                    )
+                }!!
+            }
+            /** Too many requests send for a URI that exists */
+            else if (false) {
+                throw TooManyRequestsException(hash)
+            }
+            /** URI exists but isn't safe */
+            else if (!shortUrlRepository.isSafe(hash)) {
+                throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotSafeException(it1.target) }!!
+            }
+            val h = HttpHeaders()
+            h.set(CONTENT_TYPE, IMAGE_PNG.toString())
+            ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
+        }
+
+    @Operation(
+        summary = "Return info for the given hash",
+        description = "Given a certain hash id, returns the information of the url associated to the hash."
+    )
     @GetMapping("/api/link/{id}")
     override fun showShortUrlInfo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         showShortUrlInfoUseCase.showShortUrlInfo(id).let {
             val h = HttpHeaders()
             h.set(CONTENT_TYPE, APPLICATION_JSON.toString())
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
-
-
 
             /** URI not reachable or safe */
             if (!it.properties.reachable!!) {

@@ -1,13 +1,15 @@
 package es.unizar.urlshortener.core.usecases
 
-import es.unizar.urlshortener.core.*
+import es.unizar.urlshortener.core.ShortUrl
+import es.unizar.urlshortener.core.ShortUrlRepositoryService
+import es.unizar.urlshortener.core.ShowShortUrlInfoException
 
 /**
  * Get information from DB of a URL with certain hash
  *
  */
 interface ShowShortUrlInfoUseCase {
-    fun showShortUrlInfo(id: String) : ShortUrl
+    fun showShortUrlInfo(id: String): ShortUrl
 }
 
 /**
@@ -25,11 +27,10 @@ class ShowShortUrlInfoUseCaseImpl(
      * @param id
      * @return
      */
-    override fun showShortUrlInfo(id: String) : ShortUrl =
+    override fun showShortUrlInfo(id: String): ShortUrl =
         shortUrlRepository.findByKey(id)?.let {
             val h = shortUrlRepository.findByKey(id)
             print(h)
             return@let h
-
         } ?: throw ShowShortUrlInfoException(id)
 }

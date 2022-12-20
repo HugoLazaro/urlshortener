@@ -12,7 +12,8 @@ data class Click(
 )
 
 /**
- * A [ShortUrl] is the mapping between a remote url identified by [redirection] and a local short url identified by [hash].
+ * A [ShortUrl] is the mapping between a remote url identified by [redirection]
+ * and a local short url identified by [hash].
  */
 data class ShortUrl(
     val hash: String,
