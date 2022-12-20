@@ -35,7 +35,7 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
         this.testLogging {
-        this.showStandardStreams = true
+            this.showStandardStreams = true
         }
     }
     dependencies {
@@ -73,7 +73,7 @@ project(":delivery") {
         "implementation"(project(":core"))
         "implementation"("org.springframework.boot:spring-boot-starter-amqp")
         "implementation"("org.springframework.boot:spring-boot-starter-web")
-        //"implementation"("org.springframework.boot:spring-boot-starter-webflux")
+        // "implementation"("org.springframework.boot:spring-boot-starter-webflux")
         "implementation"("org.springframework.boot:spring-boot-starter-hateoas")
         "implementation"("org.springdoc:springdoc-openapi-data-rest:1.6.0")
         "implementation"("org.springdoc:springdoc-openapi-ui:1.6.4")
@@ -103,14 +103,14 @@ project(":app") {
         "implementation"(project(":delivery"))
         "implementation"(project(":repositories"))
         "implementation"("org.springframework.boot:spring-boot-starter")
-        "implementation"( "org.webjars:bootstrap:$bootstrapVersion")
+        "implementation"("org.webjars:bootstrap:$bootstrapVersion")
         "implementation"("org.webjars:jquery:$jqueryVersion")
 
         "runtimeOnly"("org.hsqldb:hsqldb")
 
         "testImplementation"("org.springframework.boot:spring-boot-starter-test")
         "testImplementation"("org.springframework.boot:spring-boot-starter-web")
-        //"testImplementation"("org.springframework.boot:spring-boot-starter-webflux")
+        // "testImplementation"("org.springframework.boot:spring-boot-starter-webflux")
         "testImplementation"("org.springframework.boot:spring-boot-starter-jdbc")
         "testImplementation"("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
         "testImplementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
