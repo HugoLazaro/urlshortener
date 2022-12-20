@@ -7,6 +7,7 @@ import es.unizar.urlshortener.core.usecases.RedirectUseCase
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import es.unizar.urlshortener.core.usecases.ShowShortUrlInfoUseCase
 import es.unizar.urlshortener.core.usecases.GetQRUseCaseImpl
+import io.github.g0dkar.qrcode.QRCode
 import org.hamcrest.CoreMatchers.notNullValue
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -34,6 +35,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.assertj.core.api.Assertions.assertThatCode
 import org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mockito
+import java.io.ByteArrayOutputStream
 
 @WebMvcTest
 @AutoConfigureMockMvc
@@ -76,6 +78,30 @@ class FunctionalitiesTest {
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
 
+    @Autowired
+    private lateinit var qrService: QRService
+
+    @MockBean
+    private lateinit var getQRService: QRService
+
+    @Test
+    fun `getQR returns the expected byteArrayResource`() {
+        var aux = ByteArrayOutputStream().let{
+            QRCode("test").render().writeImage(it)
+            val imageBytes = it.toByteArray()
+            ByteArrayResource(imageBytes, MediaType.IMAGE_PNG_VALUE)
+        }
+        val x = QRServiceImpl()
+        assertEquals(x.getQR("test"),aux)
+    }
+
+    @Test
+    fun `generateQR returns the exception`() {
+        val x = GetQRUseCaseImpl(shortUrlRepository, qrService)
+        try {
+            assertEquals(x.generateQR("test"),QRException("test"))
+        } catch (e : QRException) { }
+    }
     @Test
     fun `test UserAgentInfo service for Windows and Firefox`() {
         val x =   UserAgentInfoImpl()
