@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 
 
 
@@ -105,8 +107,15 @@ class UrlShortenerControllerImpl(
     val clickRepositoryService: ClickRepositoryService
 ) : UrlShortenerController {
 
-   @Operation(summary="Redirect (if possible to a web page)", 
+    @Operation(summary="Redirect (if possible to a web page)", 
                 description = "Given a certain hash id, redirects (if possible) to the web page associated to that hash id.")
+    @ApiResponses(
+      value = [
+          ApiResponse(responseCode = "200", description = "Redirection completed succesfully"),
+          ApiResponse(responseCode = "400", description = "Redirection not available because the url si not reachable"),
+          ApiResponse(responseCode = "403", description = "Redirection forbidden because the url si not safe"),
+      ]
+    )
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> =
         redirectUseCase.redirectTo(id).let {
@@ -136,6 +145,8 @@ class UrlShortenerControllerImpl(
             }
         }
 
+    @Operation(summary="Create a shortened URL", 
+                description = "Given a certain url, returns a shortened url or an error if it's not safe or reachable.")
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         createShortUrlUseCase.create(
@@ -190,7 +201,8 @@ class UrlShortenerControllerImpl(
             }
             
         }
-
+    @Operation(summary="Return the qr for a given hash", 
+                description = "Given a certain hash id, returns the qr code (if the code exists).")
     @GetMapping("/{hash}/qr")
     override fun generateQR(@PathVariable hash: String, request: HttpServletRequest) : ResponseEntity<ByteArrayResource> =
             getQRUseCase.generateQR(hash).let {
@@ -211,6 +223,8 @@ class UrlShortenerControllerImpl(
                 ResponseEntity<ByteArrayResource>(it, h, HttpStatus.OK)
             }
 
+    @Operation(summary="Return info for the given hash", 
+                description = "Given a certain hash id, returns the information of the url associated to the hash.")
     @GetMapping("/api/link/{id}")
     override fun showShortUrlInfo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<ShortUrlInfo> =
         showShortUrlInfoUseCase.showShortUrlInfo(id).let {
