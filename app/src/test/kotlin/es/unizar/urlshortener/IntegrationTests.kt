@@ -106,7 +106,7 @@ class HttpRequestTest {
             HttpEntity(data, headers),
             ShortUrlDataOut::class.java
         )
-        println("\n\n" + response.statusCode +"\n\n" )
+        println("\n\n" + response.statusCode + "\n\n")
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "shorturl")).isEqualTo(0)

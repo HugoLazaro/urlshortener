@@ -5,7 +5,7 @@ import es.unizar.urlshortener.core.QRService
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.usecases.GetQRUseCaseImpl
 import io.github.g0dkar.qrcode.QRCode
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -45,7 +45,7 @@ class FunctionalitiesTest {
 
     @Test
     fun `getQR returns the expected byteArrayResource`() {
-        var aux = ByteArrayOutputStream().let {
+        val aux = ByteArrayOutputStream().let {
             QRCode("test").render().writeImage(it)
             val imageBytes = it.toByteArray()
             ByteArrayResource(imageBytes, MediaType.IMAGE_PNG_VALUE)
