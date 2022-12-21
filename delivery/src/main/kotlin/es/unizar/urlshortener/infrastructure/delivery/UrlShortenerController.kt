@@ -33,7 +33,7 @@ import java.net.URI
 import javax.servlet.http.HttpServletRequest
 
 private const val CODE_200: Int = 200
-private const val CODE_500: Long = 500
+private const val CODE_1000: Long = 1000
 
 /**
  * The specification of the controller.
@@ -179,7 +179,7 @@ class UrlShortenerControllerImpl(
         ).let {
             try {
                 /** sleep for one second */
-                Thread.sleep(CODE_500)
+                Thread.sleep(CODE_1000)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
