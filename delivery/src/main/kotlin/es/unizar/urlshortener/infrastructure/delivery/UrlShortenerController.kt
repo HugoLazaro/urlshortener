@@ -6,7 +6,6 @@ import es.unizar.urlshortener.core.ClickRepositoryService
 import es.unizar.urlshortener.core.NotValidatedYetException
 import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
-import es.unizar.urlshortener.core.TooManyRequestsException
 import es.unizar.urlshortener.core.UrlNotReachableException
 import es.unizar.urlshortener.core.UrlNotSafeException
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
@@ -154,8 +153,6 @@ class UrlShortenerControllerImpl(
                 throw UrlNotSafeException(id)
             } else if (!shortUrlRepository.isReachable(id)) { /** 400 Bad Request y cabecera Retry-After */
                 throw UrlNotReachableException(id)
-            } else if (false) {
-                throw TooManyRequestsException(id)
             } else if (shortUrlRepository.hasSponsor(id)) {
                 /** La URI recortada existe, se puede hacer redireccion y tiene publicidad */
                 h.location = URI.create(it.target)
@@ -242,10 +239,6 @@ class UrlShortenerControllerImpl(
                     )
                 }!!
             }
-            /** Too many requests send for a URI that exists */
-            else if (false) {
-                throw TooManyRequestsException(hash)
-            }
             /** URI exists but isn't safe */
             else if (!shortUrlRepository.isSafe(hash)) {
                 throw shortUrlRepository.findByKey(hash)?.redirection?.let { it1 -> UrlNotSafeException(it1.target) }!!
@@ -270,10 +263,6 @@ class UrlShortenerControllerImpl(
             if (!it.properties.reachable!!) {
                 throw UrlNotReachableException(it.redirection.target)
             }
-            /** Too many requests send for a URI that exists */
-            else if (false) {
-                throw TooManyRequestsException(it.hash)
-            }
             /** URI exists but isn't safe */
             else if (!it.properties.safe!!) {
                 throw UrlNotSafeException(it.redirection.target)
@@ -290,7 +279,7 @@ class UrlShortenerControllerImpl(
             val apilink = url.toString().substring(0, url.toString().length - lengthHash)
             val response = ShortUrlInfo(
                 url = it.redirection.target,
-                properties = mapOf<String, Any>(
+                properties = mapOf(
                     "hash" to it.hash,
                     "safe" to it.properties.safe as Any,
                     "reachable" to it.properties.reachable as Any,

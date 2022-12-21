@@ -2,8 +2,8 @@ package es.unizar.urlshortener.infrastructure.repositories
 
 import es.unizar.urlshortener.core.Click
 import es.unizar.urlshortener.core.ClickProperties
-import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.Redirection
+import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlProperties
 
 /**
@@ -70,4 +70,3 @@ fun ShortUrl.toEntity() = ShortUrlEntity(
     reachable = properties.reachable,
     country = properties.country
 )
-

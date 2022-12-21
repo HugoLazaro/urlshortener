@@ -1,7 +1,11 @@
 package es.unizar.urlshortener.infrastructure.repositories
 
 import java.time.OffsetDateTime
-import javax.persistence.*
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
+import javax.persistence.Id
+import javax.persistence.Table
 
 /**
  * The [ClickEntity] entity logs clicks.
