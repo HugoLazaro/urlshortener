@@ -5,8 +5,14 @@ import es.unizar.urlshortener.core.QRService
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.usecases.GetQRUseCaseImpl
 import io.github.g0dkar.qrcode.QRCode
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.given
+import org.assertj.core.api.Assertions.assertThat
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -109,5 +115,18 @@ class FunctionalitiesTest {
     fun `test customUrl service`() {
         assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
         assertEquals("6b30f676", hashService.hasUrl("https://www.example.com", ""))
+    }
+
+
+    @Test
+    fun `test isHashUsed service`(){
+        given(runBlocking { shortUrlRepository.isHashUsed("patata")  }).willReturn(false, true)
+
+        val returnValue1: Boolean? = runBlocking { shortUrlRepository.isHashUsed("patata")  }
+        assertThat(returnValue1).isFalse
+
+        val returnValue2: Boolean? = runBlocking { shortUrlRepository.isHashUsed("patata")  }
+        assertThat(returnValue2).isTrue
+
     }
 }
