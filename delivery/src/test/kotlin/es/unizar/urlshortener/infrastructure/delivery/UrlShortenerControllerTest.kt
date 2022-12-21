@@ -1,6 +1,7 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.*
+import es.unizar.urlshortener.core.ClickRepositoryService
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.GetQRUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
@@ -47,8 +48,10 @@ class UrlShortenerControllerTest {
     private lateinit var subject: MessageBrokerImpl
 
     @MockBean
+    @Autowired
     private lateinit var rabbitTemplateMock: RabbitTemplate
 
+    
     @MockBean
     private lateinit var rabbitAdminMock: RabbitAdmin
 
@@ -85,8 +88,8 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var showShortUrlInfoUseCase: ShowShortUrlInfoUseCase
 
-    @MockBean
-    private lateinit var hashService: HashServiceImpl
+     @MockBean
+    private lateinit var clickRepositoryService: ClickRepositoryService
 
     fun testSend() {
        /* rabbitTemplateMock = Mockito.mock(RabbitTemplate)
