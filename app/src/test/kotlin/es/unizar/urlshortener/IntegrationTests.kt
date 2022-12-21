@@ -51,7 +51,7 @@ class HttpRequestTest {
     fun `main page works`() {
         val response = restTemplate.getForEntity("http://localhost:$port/", String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).contains("A front-end example page for the project")
+        assertThat(response.body).contains("URL Shortener")
     }
 
     /*@Test
@@ -100,6 +100,7 @@ class HttpRequestTest {
 
         val data: MultiValueMap<String, String> = LinkedMultiValueMap()
         data["url"] = "ftp://example.com/"
+        data["customUrl"] = ""
 
         val response = restTemplate.postForEntity(
             "http://localhost:$port/api/link",
