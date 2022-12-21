@@ -20,10 +20,7 @@ class GetQRUseCaseImpl(
     private val qrService: QRService
 ) : GetQRUseCase {
     /**
-     * Given a certain url [hash] return it's correspondent Byte Array
-     *
-     * @param hash
-     * @return
+     * Given a certain url [hash] return its correspondent Byte Array
      */
     override fun generateQR(hash: String): ByteArrayResource =
         shortUrlRepository.findByKey(hash)?.let {

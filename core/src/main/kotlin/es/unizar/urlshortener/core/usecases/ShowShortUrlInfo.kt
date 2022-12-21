@@ -5,7 +5,7 @@ import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.ShowShortUrlInfoException
 
 /**
- * Get information from DB of a URL with certain hash
+ * Get information from the DB of a URL with certain hash
  *
  */
 interface ShowShortUrlInfoUseCase {
@@ -14,8 +14,6 @@ interface ShowShortUrlInfoUseCase {
 
 /**
  * Implementation of [ShowShortUrlInfoUseCase]
- *
- * @property shortUrlRepository
  */
 class ShowShortUrlInfoUseCaseImpl(
     private val shortUrlRepository: ShortUrlRepositoryService
@@ -24,8 +22,6 @@ class ShowShortUrlInfoUseCaseImpl(
      * Given a certain hash [id] returns the associated information
      * for that particular URL hash.
      *
-     * @param id
-     * @return
      */
     override fun showShortUrlInfo(id: String): ShortUrl =
         shortUrlRepository.findByKey(id)?.let {

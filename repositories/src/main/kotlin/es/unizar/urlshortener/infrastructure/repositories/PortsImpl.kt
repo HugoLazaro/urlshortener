@@ -37,17 +37,11 @@ class ShortUrlRepositoryServiceImpl(
 
     /**
      * Given a hash [id] returns true if it's already used, false otherwise
-     *
-     * @param id
-     * @return
      */
     override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id)
 
     /**
      * Given a hash [id] returns true if the hash has a sponsor, false otherwise
-     *
-     * @param id
-     * @return
      */
     override fun hasSponsor(id: String): Boolean = shortUrlEntityRepository.findByHash(id)?.sponsor == "true"
 
@@ -55,8 +49,6 @@ class ShortUrlRepositoryServiceImpl(
      * Given a hash [id] and a [result] saves the result in the 'safe' field
      * of the given [id] information in the DB
      *
-     * @param id
-     * @param result
      */
     override fun updateSafeInfo(id: String, result: Boolean) {
         val newInfoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
@@ -69,8 +61,6 @@ class ShortUrlRepositoryServiceImpl(
      * Given a hash [id] and a [result] saves the result in the 'reachable' field
      * of the given [id] information in the DB
      *
-     * @param id
-     * @param result
      */
     override fun updateReachableInfo(id: String, result: Boolean) {
         val newInfoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
@@ -81,9 +71,6 @@ class ShortUrlRepositoryServiceImpl(
 
     /**
      * Given a hash [id] return true if it's safe, false otherwise
-     *
-     * @param id
-     * @return
      */
     override fun isSafe(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
@@ -93,9 +80,6 @@ class ShortUrlRepositoryServiceImpl(
 
     /**
      * Given a hash [id] return true if it's reachable, false otherwise
-     *
-     * @param id
-     * @return
      */
     override fun isReachable(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()
@@ -104,10 +88,8 @@ class ShortUrlRepositoryServiceImpl(
 
     /**
      * Given a hash [id] return true if both fields 'safe' and 'reachable'
-     * of the hash are different from null
+     * of the hash are different from null, false otherwise
      *
-     * @param id
-     * @return
      */
     override fun everythingChecked(id: String): Boolean {
         val infoUrl = shortUrlEntityRepository.findByHash(id)?.toDomain()

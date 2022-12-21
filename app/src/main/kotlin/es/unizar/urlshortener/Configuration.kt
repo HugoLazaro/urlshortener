@@ -35,8 +35,6 @@ class ApplicationConfiguration(
     @Autowired val shortUrlEntityRepository: ShortUrlEntityRepository,
     @Autowired val clickEntityRepository: ClickEntityRepository
 ) {
-    // private  val queueSafeBrowsing = "safeBrowsing"
-    // private  val queueIsReachable = "isReachable"
 
     @Autowired
     private val template: RabbitTemplate = RabbitTemplate()

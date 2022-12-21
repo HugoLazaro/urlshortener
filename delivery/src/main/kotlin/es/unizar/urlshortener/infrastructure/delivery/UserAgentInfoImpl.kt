@@ -17,8 +17,6 @@ class UserAgentInfoImpl : UserAgentInfo {
      * Given a [userAgentHeader] returns the browser
      * Source: https://gist.github.com/c0rp-aubakirov/a4349cbd187b33138969
      *
-     * @param userAgentHeader
-     * @return
      */
     override fun getBrowser(userAgentHeader: String): String {
         val uaLowCase = userAgentHeader.lowercase()
@@ -84,8 +82,6 @@ class UserAgentInfoImpl : UserAgentInfo {
     /**
      * Given a [userAgentHeader] returns the platform
      *
-     * @param userAgentHeader
-     * @return
      */
     override fun getOS(userAgentHeader: String): String {
         val uaLowCase = userAgentHeader.lowercase()

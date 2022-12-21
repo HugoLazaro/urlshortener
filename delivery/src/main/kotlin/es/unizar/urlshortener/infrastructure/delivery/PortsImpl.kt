@@ -30,11 +30,6 @@ private const val TIME_CONEXION: Int = 7000
 
 /**
  * Implementation of the port [MessageBrokerService]
- *
- * @property shortUrlRepository
- * @property safeBrowsingCheck
- * @property template
- * @property isReachableCheck
  */
 class MessageBrokerImpl(
     private val shortUrlRepository: ShortUrlRepositoryService,
@@ -44,9 +39,9 @@ class MessageBrokerImpl(
 ) : MessageBrokerService {
 
     /**
-     * Receives the String [url] from the RabbitMQ 'safeBrowsing' Queue
+     * Receives the String [url] from the RabbitMQ 'safeBrowsing' Queue, and
+     * checks if the url is safe. Then updates the url info
      *
-     * @param url
      */
     @RabbitListener(queues = ["safeBrowsing"])
     @RabbitHandler
@@ -59,9 +54,9 @@ class MessageBrokerImpl(
     }
 
     /**
-     * Receives the String [url] from the RabbitMQ 'isReachable' Queue
+     * Receives the String [url] from the RabbitMQ 'isReachable' Queue and
+     * checks if the url is reachable. Then updates the url info
      *
-     * @param url
      */
     @RabbitListener(queues = ["isReachable"])
     @RabbitHandler
@@ -75,9 +70,6 @@ class MessageBrokerImpl(
 
     /**
      * Given an [url] and its [idHash], sends a message to the Broker
-     *
-     * @param url
-     * @param idHash
      */
     override fun sendSafeBrowsing(url: String, idHash: String) {
         println(" [x] Sent test reachable and safe'$url'")
@@ -97,11 +89,8 @@ class ValidatorServiceImpl : ValidatorService {
 }
 class IsReachableServiceImpl : IsReachableService {
     /**
-     * Returns the result of checking if the given [url] is reachable
+     * Returns the true if the given [url] is reachable, false otherwise
      * Source: https://stackoverflow.com/questions/29802323/android-with-kotlin-how-to-use-httpurlconnection
-     *
-     * @param url
-     * @return
      */
 
     override fun isReachable(url: String): Boolean {
@@ -149,12 +138,9 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
     }
 
     /**
-     * Returns the result of checking if the given [url] is safe
+     * Returns the true if the given [url] is safe, false otherwise
      * Source: https://stackoverflow.com/questions/41861449/kotlin-dsl-for-creating-json-objects-without-creating-garbage
      * Source for testing: https://testsafebrowsing.appspot.com/
-     *
-     * @param url
-     * @return
      */
     override fun isSafe(url: String): Boolean {
         var safe = false
@@ -208,9 +194,6 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
 class QRServiceImpl : QRService {
     /**
      * Given a [url] returns the QR code Byte Array
-     *
-     * @param url
-     * @return
      */
     override fun getQR(url: String): ByteArrayResource =
         ByteArrayOutputStream().let {
@@ -223,7 +206,6 @@ class QRServiceImpl : QRService {
 /**
  * Implementation of the port [HashService].
  */
-// @Suppress("UnstableApiUsage")
 class HashServiceImpl : HashService {
     override fun hasUrl(url: String, customUrl: String) = if (customUrl == "") {
         Hashing.murmur3_32_fixed().hashString(
