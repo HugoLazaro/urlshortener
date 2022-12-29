@@ -49,9 +49,7 @@ class CreateShortUrlUseCaseImpl(
                 val isHashUsedCoroutine = async {
                     shortUrlRepository.isHashUsed(id)
                 }
-
                 val used = isHashUsedCoroutine.await()
-                println("usado ha sido :------- $used")
 
                 if (used) {
                     throw HashUsedException(id)
