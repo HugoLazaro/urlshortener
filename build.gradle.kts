@@ -45,6 +45,7 @@ subprojects {
         "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:latest.release")
         "implementation"("org.springframework:spring-core:5.3.22")
         "implementation"("org.springframework:spring-web:5.3.22")
+        "implementation"("io.github.cdimascio:dotenv-kotlin:6.4.0")
     }
 }
 

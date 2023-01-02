@@ -8,6 +8,7 @@ import es.unizar.urlshortener.core.QRService
 import es.unizar.urlshortener.core.SafeBrowsingService
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.ValidatorService
+import io.github.cdimascio.dotenv.dotenv
 import io.github.g0dkar.qrcode.QRCode
 import net.minidev.json.JSONObject
 import org.apache.commons.validator.routines.UrlValidator
@@ -116,8 +117,10 @@ class IsReachableServiceImpl : IsReachableService {
  * Implementation of the port [SafeBrowsingService].
  */
 class SafeBrowsingServiceImpl : SafeBrowsingService {
-
-    private val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
+    // https://github.com/cdimascio/dotenv-kotlin
+    // var dotenv = dotenv()
+    // private val apiKey = dotenv["API_KEY"]
+    // private val apiKey = "AIzaSyAKr96Xa_ri95Tjw7CjRBmdrbAf_hKp7Aw"
 
     private fun json(build: JsonObjectBuilder.() -> Unit): JSONObject {
         return JsonObjectBuilder().json(build)
@@ -145,6 +148,8 @@ class SafeBrowsingServiceImpl : SafeBrowsingService {
     override fun isSafe(url: String): Boolean {
         var safe = false
         val restTemplate = RestTemplate()
+        val dotenv = dotenv()
+        val apiKey = dotenv["API_KEY"]
         val resourceUrl = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=$apiKey"
         val headers = HttpHeaders()
 
