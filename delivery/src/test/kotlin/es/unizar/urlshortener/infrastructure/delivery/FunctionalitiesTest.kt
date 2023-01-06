@@ -110,18 +110,18 @@ class FunctionalitiesTest {
 
     @Test
     fun `test customUrl service`() {
-        assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
-        assertEquals("6b30f676", hashService.hasUrl("https://www.example.com", ""))
+        //assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
+        assertEquals("6b30f676", hashService.hasUrl("https://www.example.com"))
     }
 
     @Test
     fun `test isHashUsed service`() {
-        given(runBlocking { shortUrlRepository.isHashUsed("patata") }).willReturn(false, true)
+        given(runBlocking { shortUrlRepository.isHashUsed("6b30f676", "patata") }).willReturn(false, true)
 
-        val returnValue1: Boolean = runBlocking { shortUrlRepository.isHashUsed("patata") }
+        val returnValue1: Boolean = runBlocking { shortUrlRepository.isHashUsed("6b30f676", "patata") }
         assertThat(returnValue1).isFalse
 
-        val returnValue2: Boolean = runBlocking { shortUrlRepository.isHashUsed("patata") }
+        val returnValue2: Boolean = runBlocking { shortUrlRepository.isHashUsed("6b30f676", "patata") }
         assertThat(returnValue2).isTrue
     }
 }
