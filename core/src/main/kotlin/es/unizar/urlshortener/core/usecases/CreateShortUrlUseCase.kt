@@ -12,7 +12,9 @@ import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.ValidatorService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -43,28 +45,31 @@ class CreateShortUrlUseCaseImpl(
             throw InvalidUrlException(url)
         } else {
             run {
-                val id: String = hashService.hasUrl(url, customUrl)
+                val id: String = hashService.hasUrl(url)
                 print(id)
 
-                val isHashUsedCoroutine = async {
-                    shortUrlRepository.isHashUsed(id)
-                }
-                val used = isHashUsedCoroutine.await()
-
-                if (used) {
-                    throw HashUsedException(id)
-                } else {
-                    val su = ShortUrl(
-                        hash = id,
-                        redirection = Redirection(target = url),
-                        properties = ShortUrlProperties(
-                            ip = data.ip,
-                            sponsor = data.sponsor
-                        )
+                val su = ShortUrl(
+                    hash = id,
+                    redirection = Redirection(target = url),
+                    properties = ShortUrlProperties(
+                        ip = data.ip,
+                        sponsor = data.sponsor
                     )
-                    msgBroker.sendSafeBrowsing(url, id)
-                    shortUrlRepository.save(su)
+                )
+                msgBroker.sendSafeBrowsing(url, id)
+                shortUrlRepository.save(su)
+
+                if (customUrl != "") {
+                    launch (Dispatchers.Unconfined){
+                        val used = shortUrlRepository.isHashUsed(id, customUrl)
+                        if (!used) {
+                            msgBroker.sendSafeBrowsing(url, customUrl)
+                        }
+                    }
                 }
+
+
+                return@runBlocking su
             }
         }
     }

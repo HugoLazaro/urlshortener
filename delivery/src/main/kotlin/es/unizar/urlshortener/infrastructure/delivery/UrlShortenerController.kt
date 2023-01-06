@@ -183,6 +183,7 @@ class UrlShortenerControllerImpl(
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
+            print("data.customUrl es: ${data.customUrl}" )
             if (!shortUrlRepository.everythingChecked(it.hash)) {
                 throw NotValidatedYetException(data.url)
             } else if (!shortUrlRepository.isSafe(it.hash)) { // ///////////////////!!!!!!!!!!!!!Devolver 400 no 403
@@ -198,6 +199,7 @@ class UrlShortenerControllerImpl(
                 val lengthHash = it.hash.length
                 val apilink = url.toString().substring(0, url.toString().length - lengthHash)
                 val auxiliar = true
+                val urlCustom = linkTo<UrlShortenerControllerImpl> { redirectTo(data.customUrl, request) }.toUri()
                 val response = ShortUrlInfo(
                     url = it.redirection.target,
                     properties = mapOf(
@@ -213,10 +215,13 @@ class UrlShortenerControllerImpl(
                         "ip" to if (it.properties.ip != null) it.properties.ip as Any else "",
                         "sponsor" to if (it.properties.sponsor != null) it.properties.sponsor as Any else ""
                     ),
-                    actions = mapOf<String, Any>(
+                    actions = mapOf(
                         "redirect" to "$url",
                         "qr" to ("$url/qr"),
-                        "information" to ("${apilink}api/link/${it.hash}")
+                        "information" to ("${apilink}api/link/${it.hash}"),
+                        "redirectCustomUrl" to if (data.customUrl != "") "$urlCustom" else "",
+                        "qrCustomUrl" to if (data.customUrl != "") "$urlCustom/qr" else "",
+                        "informationCustomUrl" to if (data.customUrl != "") ("${apilink}api/link/${data.customUrl}") else "",
                     )
                 )
                 ResponseEntity<ShortUrlInfo>(response, h, HttpStatus.CREATED)

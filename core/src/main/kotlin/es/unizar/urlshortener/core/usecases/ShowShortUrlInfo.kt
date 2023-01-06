@@ -24,9 +24,5 @@ class ShowShortUrlInfoUseCaseImpl(
      *
      */
     override fun showShortUrlInfo(id: String): ShortUrl =
-        shortUrlRepository.findByKey(id)?.let {
-            val h = shortUrlRepository.findByKey(id)
-            print(h)
-            return@let h
-        } ?: throw ShowShortUrlInfoException(id)
+        shortUrlRepository.findByKey(id)?:throw ShowShortUrlInfoException(id)
 }

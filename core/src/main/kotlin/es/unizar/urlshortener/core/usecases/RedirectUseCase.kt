@@ -20,9 +20,15 @@ interface RedirectUseCase {
 class RedirectUseCaseImpl(
     private val shortUrlRepository: ShortUrlRepositoryService
 ) : RedirectUseCase {
-    override fun redirectTo(key: String) = shortUrlRepository
-        .findByKey(key)
-        ?.redirection
-        ?: throw RedirectionNotFound(key)
+    override fun redirectTo(key: String): Redirection {
+        val aux = shortUrlRepository
+            .findByKey(key)
+        print("hemos pedido redireccion a $key")
+        print(aux)
+
+        return aux?.redirection
+            ?: throw RedirectionNotFound(key)
+    }
+
 }
 

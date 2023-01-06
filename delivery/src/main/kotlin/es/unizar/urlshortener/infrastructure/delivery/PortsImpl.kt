@@ -212,12 +212,5 @@ class QRServiceImpl : QRService {
  * Implementation of the port [HashService].
  */
 class HashServiceImpl : HashService {
-    override fun hasUrl(url: String, customUrl: String) = if (customUrl == "") {
-        Hashing.murmur3_32_fixed().hashString(
-            url,
-            StandardCharsets.UTF_8
-        ).toString()
-    } else {
-        customUrl
-    }
+    override fun hasUrl(url: String) = Hashing.murmur3_32_fixed().hashString(url, StandardCharsets.UTF_8).toString()
 }

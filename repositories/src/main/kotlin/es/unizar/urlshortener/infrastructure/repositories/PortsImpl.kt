@@ -38,7 +38,27 @@ class ShortUrlRepositoryServiceImpl(
     /**
      * Given a hash [id] returns true if it's already used, false otherwise
      */
-    override suspend fun isHashUsed(id: String): Boolean = shortUrlEntityRepository.existsById(id)
+    override suspend fun isHashUsed(id: String, customUrl: String): Boolean {
+        print("estamos aqui en isHashUsed2 $id $customUrl")
+        val used = shortUrlEntityRepository.existsById(customUrl)
+        val aux2 = findByKey(id)
+        print("el original $id es $aux2")
+        if (!used) {
+            print("hemos entrado  $id $customUrl")
+            val shortUrl = findByKey(id)
+            shortUrl?.hash = customUrl
+            print("shortUrl ES = $shortUrl")
+            if (shortUrl != null) {
+                print("guardamos ")
+                shortUrlEntityRepository.save((shortUrl).toEntity()).toDomain()
+                val aux = findByKey(customUrl)
+                print(aux)
+            }
+
+
+        }
+        return used
+    }
 
     /**
      * Given a hash [id] returns true if the hash has a sponsor, false otherwise

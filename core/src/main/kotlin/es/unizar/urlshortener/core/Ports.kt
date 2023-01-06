@@ -17,7 +17,7 @@ interface ClickRepositoryService {
 interface ShortUrlRepositoryService {
     fun findByKey(id: String): ShortUrl?
     fun save(su: ShortUrl): ShortUrl
-    suspend fun isHashUsed(id: String): Boolean
+    suspend fun isHashUsed(id: String, customUrl: String): Boolean
     fun updateSafeInfo(id: String, result: Boolean)
     fun updateReachableInfo(id: String, result: Boolean)
     fun isSafe(id: String): Boolean
@@ -69,7 +69,7 @@ interface QRService {
  * **Note**: It is a design decision to create this port. It could be part of the core .
  */
 interface HashService {
-    fun hasUrl(url: String, customUrl: String): String
+    fun hasUrl(url: String): String
 }
 
 /**
