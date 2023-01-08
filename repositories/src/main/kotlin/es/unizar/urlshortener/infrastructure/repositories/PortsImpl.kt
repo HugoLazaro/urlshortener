@@ -54,8 +54,6 @@ class ShortUrlRepositoryServiceImpl(
                 val aux = findByKey(customUrl)
                 print(aux)
             }
-
-
         }
         return used
     }

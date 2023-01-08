@@ -1,7 +1,6 @@
 package es.unizar.urlshortener.core.usecases
 
 import es.unizar.urlshortener.core.HashService
-import es.unizar.urlshortener.core.HashUsedException
 import es.unizar.urlshortener.core.InvalidUrlException
 import es.unizar.urlshortener.core.IsReachableService
 import es.unizar.urlshortener.core.MessageBrokerService
@@ -13,7 +12,6 @@ import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 import es.unizar.urlshortener.core.ValidatorService
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -60,14 +58,13 @@ class CreateShortUrlUseCaseImpl(
                 shortUrlRepository.save(su)
 
                 if (customUrl != "") {
-                    launch (Dispatchers.Unconfined){
+                    launch(Dispatchers.Unconfined) {
                         val used = shortUrlRepository.isHashUsed(id, customUrl)
                         if (!used) {
                             msgBroker.sendSafeBrowsing(url, customUrl)
                         }
                     }
                 }
-
 
                 return@runBlocking su
             }

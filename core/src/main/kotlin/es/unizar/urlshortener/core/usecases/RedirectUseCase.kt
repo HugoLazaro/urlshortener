@@ -29,6 +29,4 @@ class RedirectUseCaseImpl(
         return aux?.redirection
             ?: throw RedirectionNotFound(key)
     }
-
 }
-

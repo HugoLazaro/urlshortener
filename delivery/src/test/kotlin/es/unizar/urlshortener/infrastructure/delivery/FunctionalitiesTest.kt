@@ -110,7 +110,7 @@ class FunctionalitiesTest {
 
     @Test
     fun `test customUrl service`() {
-        //assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
+        // assertEquals("patata", hashService.hasUrl("https://www.example.com", "patata"))
         assertEquals("6b30f676", hashService.hasUrl("https://www.example.com"))
     }
 
