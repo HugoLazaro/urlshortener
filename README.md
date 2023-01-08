@@ -10,7 +10,7 @@
 * [Reference Documentation](#reference-documentation)
 * [Guides](#guides)
 
-## Overall structure
+## Overall structure 
 
 The structure of this project is heavily influenced by
 [the clean architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html):
